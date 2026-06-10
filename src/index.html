@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公務AI共通核心能力認證考試系統</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-hint {
+      position: fixed; bottom: 10px; right: 16px; font-size: 0.7rem;
+      color: var(--text-light); opacity: 0.4; cursor: pointer; z-index: 50;
+      transition: opacity 0.3s;
+    }
+    .admin-hint:hover { opacity: 1; }
+    .login-status {
+      margin-top: 12px; font-size: 0.85rem; color: var(--primary);
+      font-weight: 600; display: none; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Banner -->
+  <header class="top-banner">
+    <div class="brand-logo"><span class="logo-text"><span class="logo-accent">AI</span>TalentCert</span></div>
+    <div class="banner-title">
+      <h1>公務AI共通核心能力認證</h1>
+      <div class="subtitle">Government AI Core Competency Certification</div>
+    </div>
+  </header>
+
+  <!-- Login Content -->
+  <div class="main-content">
+    <div class="login-wrapper">
+      <div class="login-card" id="loginCard">
+        <div class="login-icon">📝</div>
+        <h2>公務AI共通核心能力認證</h2>
+        <div class="login-subtitle">請輸入身分證字號登入</div>
+
+        <form id="loginForm" autocomplete="off">
+          <div class="form-group">
+            <label for="studentId">考生帳號：</label>
+            <input type="text" id="studentId" class="form-input" placeholder="請輸入身分證字號" maxlength="10" autofocus>
+            <div class="error-message" id="errorMsg">
+              <span>⚠</span> <span id="errorText">帳號不正確，請重新輸入</span>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button type="submit" class="btn btn-primary" id="btnLogin">🔑 登入</button>
+            <button type="button" class="btn btn-secondary" id="btnCancel">✖ 取消</button>
+          </div>
+          <div class="login-status" id="loginStatus">驗證中，請稍候...</div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden admin entrance -->
+  <div class="admin-hint" id="adminHint" title="管理者登入">⚙</div>
+
+  <!-- Version display -->
+  <div id="versionTag" style="position:fixed;bottom:10px;left:16px;font-size:0.65rem;color:var(--text-light);opacity:0.5;z-index:50;"></div>
+
+  <!-- Practice Mode Selection Modal -->
+  <div id="modeChoiceOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;">
+    <div style="background:var(--bg-card);border-radius:16px;padding:32px 36px;max-width:460px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🎓</div>
+      <h2 id="modeStudentName" style="margin-bottom:4px;"></h2>
+      <p style="color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">請選擇考試模式</p>
+      <div id="modeChoiceBtns" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </div>
+  </div>
+
+  <script src="js/index.js"></script>
+</body>
+</html>

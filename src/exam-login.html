@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>考生登入</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top-banner">
+    <div class="brand-logo"><span class="logo-text"><span class="logo-accent">AI</span>TalentCert</span></div>
+    <div class="banner-title">
+      <h1>公務AI共通核心能力認證</h1>
+      <div class="subtitle">Government AI Core Competency Certification</div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="login-wrapper">
+
+      <!-- Step 1: Admin Unlock -->
+      <div class="login-card" id="unlockCard">
+        <a class="back-link" id="btnBack1">← 返回首頁</a>
+        <div class="login-icon">🔐</div>
+        <h2>考試系統解鎖</h2>
+        <div class="login-subtitle">請管理者輸入密碼以開啟考試</div>
+
+        <form id="unlockForm" autocomplete="off">
+          <div class="form-group">
+            <label for="adminPassword">管理者密碼：</label>
+            <input type="password" id="adminPassword" class="form-input" placeholder="請輸入管理者密碼" autofocus>
+            <div class="error-message" id="unlockError">
+              <span>⚠</span> <span id="unlockErrorText">密碼不正確</span>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button type="submit" class="btn btn-primary">🔓 解鎖考試</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: Student Login (hidden until unlocked) -->
+      <div class="login-card hidden" id="studentCard">
+        <a class="back-link" id="btnBack2">← 返回首頁</a>
+        <div class="login-icon">📝</div>
+        <h2>公務AI共通核心能力認證</h2>
+        <div class="login-subtitle" id="examTitle">請輸入考生帳號開始考試</div>
+
+        <form id="loginForm" autocomplete="off">
+          <div class="form-group">
+            <label for="studentId">考生帳號：</label>
+            <input type="text" id="studentId" class="form-input" placeholder="請輸入身分證字號" maxlength="10">
+            <div class="error-message" id="errorMsg">
+              <span>⚠</span> <span id="errorText">帳號不正確，請重新輸入</span>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button type="submit" class="btn btn-primary" id="btnLogin">🔑 登 錄</button>
+            <button type="button" class="btn btn-secondary" id="btnCancel">✖ 取 消</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/exam-login.js"></script>
+</body>
+</html>

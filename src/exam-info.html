@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>考前須知</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top-banner">
+    <div class="brand-logo"><span class="logo-text"><span class="logo-accent">AI</span>TalentCert</span></div>
+    <div class="banner-title">
+      <h1>公務AI共通核心能力認證</h1>
+      <div class="subtitle">Government AI Core Competency Certification</div>
+    </div>
+  </header>
+
+  <div class="main-content" style="align-items:stretch;">
+    <div class="exam-info-wrapper">
+      <div class="exam-info-tabs">
+        <div class="exam-info-tab active" id="tabSubject">[<span id="tabLevel">通識</span>] <span id="tabTitle">考試科目</span></div>
+        <div class="exam-info-tab" id="tabNotice">注意事項</div>
+      </div>
+
+      <div class="exam-info-header">
+        <div class="info-item">身分證統一編號：<span id="infoStudentId">—</span></div>
+        <div class="info-item">姓名：<span id="infoStudentName">—</span></div>
+      </div>
+
+      <div class="exam-info-body">
+        <ol class="notice-list">
+          <li><span class="notice-num">一、</span><span>本試卷試題為學科試題，含<strong>單選選擇題</strong>和<strong>複選題</strong>組題，共 <span id="noticeTotal">30</span> 題，共佔 100%，每題 <span id="noticePoints">2.5</span> 分（答錯不倒扣），總分共計 100 分，測驗時間 <span id="noticeTime">90</span> 分鐘。</span></li>
+          <li><span class="notice-num">二、</span><span>本試題 0 為阿拉伯數字，O 為英文字母，作答時請先確認。</span></li>
+          <li><span class="notice-num">三、</span><span>學科試卷中滑鼠左右鍵位之選項，請以右手操作作答。</span></li>
+          <li><span class="notice-num">四、</span><span>有問題請舉手發問，切勿私下交談。</span></li>
+          <li><span class="notice-num">五、</span><span>單選題限制點選單一答案，選擇區塊為<strong>圓形按鈕</strong>；複選題可勾選兩項以上之答案，選擇區塊為<strong>方形按鈕</strong>。</span></li>
+          <li><span class="notice-num">六、</span><span>可使用「上一題」及「下一題」按鈕切換作答題目。</span></li>
+          <li><span class="notice-num">七、</span><span>「不作答」按鈕可清空作答資料；「試題標記」可標記特定題目，標記內容僅供應考生參考，不影響評分結果。</span></li>
+          <li><span class="notice-num">八、</span><span>「試題總覽」按鈕可以檢視整體作答情況，題號顯示綠色為有作答、黃色為有標記、紅色為未作答。</span></li>
+          <li><span class="notice-num">九、</span><span>作答完成時，請點選上方「結束測驗」按鈕，系統將會統計作答狀況供應考生參考。</span></li>
+          <li><span class="notice-num">十、</span><span>於考試進行中，若系統發生問題，請舉手由監試人員協助，切勿任意自行操作。</span></li>
+        </ol>
+      </div>
+
+      <div class="exam-info-footer">
+        <div class="status-text" id="statusText">試卷資料載入中...</div>
+        <button class="btn btn-success btn-lg" id="btnStart" disabled>開 始</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/exam-info.js"></script>
+</body>
+</html>

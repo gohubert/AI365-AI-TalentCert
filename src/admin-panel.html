@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者後台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top-banner">
+    <div class="brand-logo"><span class="logo-text"><span class="logo-accent">AI</span>TalentCert</span></div>
+    <div class="banner-title">
+      <h1>公務AI共通核心能力認證</h1>
+      <div class="subtitle">管理者後台 — Administration Panel <span id="adminVersionTag" style="font-size:0.7rem;opacity:0.5;"></span></div>
+    </div>
+  </header>
+
+  <div class="main-content" style="align-items:stretch;">
+    <div class="admin-wrapper">
+      <!-- Sidebar -->
+      <div class="admin-sidebar">
+        <div class="sidebar-header">
+          <h3>🔧 管理者後台</h3>
+          <p>系統管理與題庫維護</p>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-item active" data-panel="examPanel">
+            <span class="icon">📚</span> 題庫管理
+          </div>
+          <div class="sidebar-item" data-panel="rosterPanel">
+            <span class="icon">👥</span> 考生管理
+          </div>
+          <div class="sidebar-item" data-panel="settingsPanel">
+            <span class="icon">⚙️</span> 考試設定
+          </div>
+          <div class="sidebar-item" data-panel="resultsPanel">
+            <span class="icon">📊</span> 成績查詢
+          </div>
+          <div class="sidebar-item" data-panel="analysisPanel">
+            <span class="icon">📈</span> 考題分析
+          </div>
+          <div class="sidebar-item" data-panel="reportsPanel">
+            <span class="icon">🚨</span> 報錯記錄
+          </div>
+          <div class="sidebar-item" data-panel="passwordPanel">
+            <span class="icon">🔑</span> 變更密碼
+          </div>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="btn btn-danger btn-sm" id="btnLogout">🚪 登出</button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="admin-content">
+        <!-- ── Exam Management Panel ── -->
+        <div id="examPanel" class="admin-panel">
+          <div class="admin-content-header">
+            <h2>📚 題庫管理</h2>
+          </div>
+          <div class="admin-content-body">
+
+            <!-- 模擬題庫區 -->
+            <div class="panel-card">
+              <h4>📝 模擬題庫（練習用）</h4>
+              <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">
+                模擬考試時，系統會從所有勾選啟用的題庫中隨機抽取 50 題。
+              </p>
+              <div class="card-actions" style="margin-bottom:12px;">
+                <button class="btn btn-primary btn-sm" id="btnImportExam">📂 匯入模擬題庫</button>
+                <button class="btn btn-outline btn-sm" id="btnImportSample">📥 匯入範例題庫</button>
+              </div>
+              <div id="examListContainer">
+                <div class="info-box info">尚未匯入任何模擬題庫</div>
+              </div>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--border-color);margin:20px 0;" />
+
+            <!-- 正式考卷區 -->
+            <div class="panel-card">
+              <h4>🏆 正式考卷（A券 / B券 ...）</h4>
+              <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">
+                正式考試使用固定考卷，不隨機出題。每張考卷為一份完整的 50 題試卷。
+              </p>
+              <div class="card-actions" style="margin-bottom:12px;">
+                <button class="btn btn-primary btn-sm" id="btnImportFormal">📂 匯入正式考卷</button>
+              </div>
+              <div id="formalExamListContainer">
+                <div class="info-box info">尚未匯入任何正式考卷</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── Student Roster Panel ── -->
+        <div id="rosterPanel" class="admin-panel hidden">
+          <div class="admin-content-header">
+            <h2>👥 考生管理</h2>
+          </div>
+          <div class="admin-content-body">
+            <div class="panel-card">
+              <h4>匯入考生名冊</h4>
+              <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px;">
+                JSON 格式：<code>[{"name":"王小明","password":"A123456789","paid":true},...]</code>
+              </p>
+              <div class="card-actions">
+                <button class="btn btn-primary btn-sm" id="btnImportRoster">📂 匯入名冊檔案</button>
+                <button class="btn btn-outline btn-sm" id="btnImportSampleRoster">📥 匯入範例名冊</button>
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <h4>目前考生名冊</h4>
+              <div id="rosterContainer">
+                <div class="info-box info">尚未匯入考生名冊</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Exam Settings Panel ── -->
+        <div id="settingsPanel" class="admin-panel hidden">
+          <div class="admin-content-header">
+            <h2>⚙️ 考試設定</h2>
+          </div>
+          <div class="admin-content-body">
+            <div class="panel-card">
+              <h4>啟用考試題庫</h4>
+              <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:12px;">
+                選擇考生登入後將使用的題庫。
+              </p>
+              <div id="activeExamContainer">
+                <div class="info-box warning">尚未設定啟用題庫，請先匯入題庫後再設定。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Results Panel ── -->
+        <div id="resultsPanel" class="admin-panel hidden">
+          <div class="admin-content-header">
+            <h2>📊 成績查詢</h2>
+          </div>
+          <div class="admin-content-body">
+            <div class="panel-card">
+              <h4>考試成績記錄</h4>
+              <div class="card-actions" style="margin-bottom:12px;">
+                <button class="btn btn-outline btn-sm" id="btnRefreshResults">🔄 重新整理</button>
+                <button class="btn btn-danger btn-sm" id="btnClearResults">🗑 清除所有成績</button>
+              </div>
+              <div id="resultsContainer">
+                <div class="info-box info">載入中...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Analysis Panel ── -->
+        <div id="analysisPanel" class="admin-panel hidden">
+          <div class="admin-content-header">
+            <h2>📈 考題分析</h2>
+          </div>
+          <div class="admin-content-body">
+            <div class="panel-card">
+              <h4>題目鑑別度與難度分析</h4>
+              <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">
+                基於正式考試成績，分析每題的答對率（難度）與鑑別度（高分組 vs 低分組的答對率差異）。
+              </p>
+              <div class="card-actions" style="margin-bottom:12px;">
+                <button class="btn btn-primary btn-sm" id="btnRunAnalysis">🔍 開始分析</button>
+              </div>
+              <div id="analysisContainer">
+                <div class="info-box info">點擊「開始分析」以產生報告</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="reportsPanel" class="admin-panel hidden">
+          <div class="admin-content-header">
+            <h2>🚨 報錯記錄</h2>
+          </div>
+          <div class="admin-content-body">
+            <div class="panel-card">
+              <h4>考生報錯回報</h4>
+              <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">
+                考生在模擬練習時回報的題目問題，請評估是否需要修正題目或答案。
+              </p>
+              <div class="card-actions" style="margin-bottom:12px;">
+                <button class="btn btn-outline btn-sm" id="btnRefreshReports">🔄 重新整理</button>
+                <button class="btn btn-danger btn-sm" id="btnClearReports">🗑 清除所有報錯</button>
+              </div>
+              <div id="reportsContainer">
+                <div class="info-box info">載入中...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Change Password Panel ── -->
+        <div id="passwordPanel" class="admin-panel hidden">
+          <div class="admin-content-header">
+            <h2>🔑 變更密碼</h2>
+          </div>
+          <div class="admin-content-body">
+            <div class="panel-card" style="max-width:480px;">
+              <form id="changePasswordForm" autocomplete="off">
+                <div class="form-group">
+                  <label for="oldPassword">目前密碼：</label>
+                  <input type="password" id="oldPassword" class="form-input" placeholder="請輸入目前密碼">
+                </div>
+                <div class="form-group">
+                  <label for="newPassword">新密碼：</label>
+                  <input type="password" id="newPassword" class="form-input" placeholder="請輸入新密碼（至少 6 個字元）">
+                </div>
+                <div class="form-group">
+                  <label for="newPasswordConfirm">確認新密碼：</label>
+                  <input type="password" id="newPasswordConfirm" class="form-input" placeholder="請再次輸入新密碼">
+                </div>
+                <div class="btn-group" style="justify-content:flex-start;">
+                  <button type="submit" class="btn btn-primary btn-sm">💾 儲存變更</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Rename Modal -->
+  <div id="renameOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:none;align-items:center;justify-content:center;">
+    <div style="background:var(--bg-card);border-radius:14px;padding:28px 32px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+      <h3 style="margin-bottom:12px;">✏️ 重新命名題庫</h3>
+      <input type="text" id="renameInput" placeholder="請輸入新的題庫名稱" style="width:100%;padding:10px;border:1.5px solid var(--border-color);border-radius:8px;font-size:0.95rem;background:var(--bg-secondary);color:var(--text-primary);" />
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+        <button class="btn btn-secondary btn-sm" id="btnRenameCancel">取消</button>
+        <button class="btn btn-primary btn-sm" id="btnRenameConfirm">✔ 確定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin-panel.js"></script>
+</body>
+</html>

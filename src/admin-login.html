@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者登入</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top-banner">
+    <div class="brand-logo"><span class="logo-text"><span class="logo-accent">AI</span>TalentCert</span></div>
+    <div class="banner-title">
+      <h1>公務AI共通核心能力認證</h1>
+      <div class="subtitle">Government AI Core Competency Certification</div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="login-wrapper">
+      <div class="login-card">
+        <a class="back-link" id="btnBack">← 返回首頁</a>
+        <div class="login-icon">🔧</div>
+        <h2 id="loginTitle">管理者登入</h2>
+        <div class="login-subtitle" id="loginSubtitle">請輸入管理者密碼</div>
+
+        <form id="loginForm" autocomplete="off">
+          <!-- Password field -->
+          <div class="form-group">
+            <label for="adminPassword">管理者密碼：</label>
+            <input type="password" id="adminPassword" class="form-input" placeholder="請輸入密碼" autofocus>
+            <div class="error-message" id="errorMsg">
+              <span>⚠</span> <span id="errorText">密碼不正確</span>
+            </div>
+          </div>
+
+          <!-- Confirm password (only for first-time setup) -->
+          <div class="form-group hidden" id="confirmGroup">
+            <label for="confirmPassword">確認密碼：</label>
+            <input type="password" id="confirmPassword" class="form-input" placeholder="請再次輸入密碼">
+          </div>
+
+          <div class="btn-group">
+            <button type="submit" class="btn btn-primary" id="btnSubmit">🔑 登 入</button>
+            <button type="button" class="btn btn-secondary" id="btnCancel">✖ 取 消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin-login.js"></script>
+</body>
+</html>

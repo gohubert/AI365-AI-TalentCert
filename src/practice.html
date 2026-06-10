@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模擬練習 — 公務AI共通核心能力認證</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .practice-toolbar {
+      background: var(--bg-card); border-bottom: 2px solid var(--primary);
+      padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .practice-toolbar .mode-badge {
+      background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+      padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+    }
+    .practice-toolbar .student-info {
+      font-size: 0.85rem; color: var(--text-secondary); margin-left: auto;
+    }
+
+    .practice-content { flex: 1; overflow-y: auto; padding: 24px; }
+
+    .practice-question-card {
+      background: var(--bg-card); border-radius: 12px; padding: 28px;
+      max-width: 900px; margin: 0 auto;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .practice-question-num {
+      font-size: 0.85rem; font-weight: 700; color: var(--primary);
+      margin-bottom: 6px;
+    }
+    .practice-question-text {
+      font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px; color: var(--text-primary);
+    }
+    .practice-options { list-style: none; padding: 0; }
+    .practice-options li {
+      padding: 12px 16px; margin-bottom: 8px; border: 2px solid var(--border-color);
+      border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 1rem;
+      line-height: 1.6; display: flex; align-items: flex-start; gap: 10px;
+    }
+    .practice-options li:hover { border-color: var(--primary); background: rgba(59,130,246,0.04); }
+    .practice-options li.selected { border-color: var(--primary); background: rgba(59,130,246,0.1); font-weight: 600; }
+    .practice-options li.correct { border-color: var(--success); background: rgba(16,185,129,0.1); }
+    .practice-options li.wrong { border-color: var(--danger); background: rgba(239,68,68,0.08); }
+    .practice-options li .opt-label {
+      min-width: 28px; height: 28px; border-radius: 50%;
+      background: var(--bg-secondary); display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .practice-options li.selected .opt-label { background: var(--primary); color: #fff; }
+    .practice-options li.correct .opt-label { background: var(--success); color: #fff; }
+    .practice-options li.wrong .opt-label { background: var(--danger); color: #fff; }
+
+    .answer-section {
+      margin-top: 20px; padding: 16px; border-radius: 10px;
+      display: none;
+    }
+    .answer-section.show { display: block; }
+    .answer-section.correct-answer { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); }
+    .answer-section.wrong-answer { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); }
+    .answer-result { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .answer-result.correct { color: var(--success); }
+    .answer-result.wrong { color: var(--danger); }
+    .answer-explanation { font-size: 0.92rem; line-height: 1.8; color: var(--text-secondary); }
+    .answer-explanation strong { color: var(--text-primary); }
+
+    .practice-nav {
+      display: flex; gap: 10px; justify-content: center; margin-top: 24px;
+    }
+    .practice-nav .btn { min-width: 120px; }
+
+    .practice-progress {
+      text-align: center; margin-top: 16px;
+      font-size: 0.85rem; color: var(--text-light);
+    }
+    .progress-bar-container {
+      max-width: 400px; margin: 8px auto 0; height: 6px;
+      background: var(--bg-secondary); border-radius: 3px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; background: var(--primary); border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .btn-report {
+      background: transparent; border: 1.5px solid var(--warning-color, #f59e0b); color: #f59e0b;
+      font-size: 0.82rem; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+      transition: all 0.2s; font-weight: 600;
+    }
+    .btn-report:hover { background: rgba(245,158,11,0.1); }
+
+    .report-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+    }
+    .report-modal-overlay.show { display: flex; }
+    .report-modal {
+      background: var(--bg-card); border-radius: 14px; padding: 28px 32px;
+      max-width: 480px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .report-modal h3 { margin-bottom: 6px; }
+    .report-modal .report-hint { font-size: 0.85rem; color: var(--text-light); margin-bottom: 16px; }
+    .report-modal textarea {
+      width: 100%; min-height: 100px; padding: 10px; border: 1.5px solid var(--border-color);
+      border-radius: 8px; font-size: 0.95rem; resize: vertical; font-family: inherit;
+      background: var(--bg-secondary); color: var(--text-primary);
+    }
+    .report-modal textarea:focus { border-color: var(--primary); outline: none; }
+    .report-modal .report-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+    .report-toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: var(--success); color: #fff; padding: 10px 24px; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 600; z-index: 99999;
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .report-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header class="top-banner">
+    <div class="brand-logo"><span class="logo-text"><span class="logo-accent">AI</span>TalentCert</span></div>
+    <div class="banner-title">
+      <h1>公務AI共通核心能力認證</h1>
+      <div class="subtitle">模擬練習模式 — Practice Mode</div>
+    </div>
+  </header>
+
+  <div class="practice-toolbar">
+    <span class="mode-badge">🔄 模擬練習</span>
+    <span style="font-size:0.85rem;color:var(--text-secondary);" id="practiceInfo"></span>
+    <span class="student-info" id="studentInfo"></span>
+    <button class="btn btn-danger btn-sm" id="btnQuit" style="margin-left:12px;">✖ 強制離開</button>
+  </div>
+
+  <div class="practice-content">
+    <div class="practice-question-card" id="questionCard">
+      <div class="practice-question-num" id="questionNum">第 1 題</div>
+      <div class="practice-question-text" id="questionText"></div>
+      <ul class="practice-options" id="optionsList"></ul>
+
+      <div class="answer-section" id="answerSection">
+        <div class="answer-result" id="answerResult"></div>
+        <div class="answer-explanation" id="answerExplanation"></div>
+      </div>
+
+      <div class="practice-nav">
+        <button class="btn btn-secondary" id="btnPrev">◀ 上一題</button>
+        <button class="btn btn-primary" id="btnConfirm">確認答案</button>
+        <button class="btn btn-primary" id="btnNext" style="display:none;">下一題 ▶</button>
+        <button class="btn btn-success" id="btnFinish" style="display:none;">📊 查看成績</button>
+        <button class="btn-report" id="btnReport">⚠ 報錯</button>
+      </div>
+
+      <div class="practice-progress">
+        <span id="progressText">1 / 40</span>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Modal -->
+  <div class="report-modal-overlay" id="reportOverlay">
+    <div class="report-modal">
+      <h3>⚠️ 題目報錯</h3>
+      <div class="report-hint">請說明您認為此題有何問題（例如：答案有誤、題目文字不清楚、選項重複等）</div>
+      <div style="font-size:0.85rem;color:var(--primary);font-weight:600;margin-bottom:10px;" id="reportQuestionRef"></div>
+      <textarea id="reportContent" placeholder="請輸入報錯內容..."></textarea>
+      <div class="report-actions">
+        <button class="btn btn-secondary btn-sm" id="btnReportCancel">取消</button>
+        <button class="btn btn-primary btn-sm" id="btnReportSubmit">✔ 提交報錯</button>
+      </div>
+    </div>
+  </div>
+  <div class="report-toast" id="reportToast"></div>
+
+  <script src="js/practice.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>測驗進行中</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top-banner">
+    <div class="brand-logo"><span class="logo-text"><span class="logo-accent">AI</span>TalentCert</span></div>
+    <div class="banner-title">
+      <h1>公務AI共通核心能力認證</h1>
+      <div class="subtitle">Government AI Core Competency Certification</div>
+    </div>
+  </header>
+
+  <div class="main-content" style="align-items:stretch;">
+    <!-- Exam Content -->
+    <div class="exam-wrapper" id="examWrapper">
+      <div class="exam-topbar">
+        <span class="topbar-label">學科測驗</span>
+        <span class="subject-tag" id="examSubjectTag">[通識] 考試科目</span>
+        <span class="student-info" id="examStudentInfo">— / —</span>
+        <span class="timer" id="examTimer">
+          <span class="timer-icon">⏱</span>
+          <span id="timerDisplay">50:00</span> / <span id="timerTotal">50:00</span>
+        </span>
+        <button class="btn-end-exam" id="btnEndExam">🔒 結束測驗</button>
+      </div>
+
+      <div class="exam-toolbar">
+        <button class="toolbar-btn" id="btnPrev" title="上一題">◀ 上一題</button>
+        <button class="toolbar-btn" id="btnNext" title="下一題">下一題 ▶</button>
+        <div class="toolbar-separator"></div>
+        <button class="toolbar-btn" id="btnClear" title="清空作答">不作答</button>
+        <button class="toolbar-btn" id="btnMark" title="標記此題">☆ 試題標記</button>
+        <button class="toolbar-btn" id="btnOverview" title="試題總覽">試題總覽</button>
+        <div class="toolbar-spacer"></div>
+        <button class="toolbar-btn zoom-btn" id="btnZoomIn" title="放大字體">🔍+</button>
+        <button class="toolbar-btn zoom-btn" id="btnZoomOut" title="縮小字體">🔍−</button>
+      </div>
+
+      <div class="question-area" id="questionArea">
+        <div class="question-text" id="questionText">
+          <span class="q-number" id="qNumber">1.</span>
+          <span id="qText">載入中...</span>
+          <span class="q-type-badge single" id="qTypeBadge">單選題</span>
+        </div>
+        <ul class="options-list" id="optionsList"></ul>
+      </div>
+    </div>
+
+    <!-- Exam End Screen -->
+    <div class="exam-end-wrapper" id="examEndScreen">
+      <div class="end-icon" id="endIcon">⏳</div>
+      <h2 id="endTitle">正在上傳成績...</h2>
+      <p id="endMessage">請勿關閉視窗，系統正在將您的成績上傳至伺服器。</p>
+      <div class="end-note" id="endNote" style="display:none;"></div>
+      <div class="end-countdown" id="endCountdown" style="display:none; margin-top:20px; font-size:1.1rem; color:var(--text-light);"></div>
+    </div>
+  </div>
+
+  <!-- Question Overview -->
+  <div class="overview-overlay" id="overviewOverlay">
+    <div class="overview-panel">
+      <div class="overview-header">
+        <h3>📋 試題總覽</h3>
+        <button class="overview-close" id="overviewClose">✕</button>
+      </div>
+      <div class="overview-legend">
+        <div class="legend-item"><div class="legend-dot answered"></div><span>已作答</span></div>
+        <div class="legend-item"><div class="legend-dot marked"></div><span>已標記</span></div>
+        <div class="legend-item"><div class="legend-dot unanswered"></div><span>未作答</span></div>
+      </div>
+      <div class="overview-grid" id="overviewGrid"></div>
+      <div class="overview-stats">
+        <div class="stat-item answered">已作答：<span id="statAnswered">0</span></div>
+        <div class="stat-item marked">已標記：<span id="statMarked">0</span></div>
+        <div class="stat-item unanswered">未作答：<span id="statUnanswered">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Exam Dialog -->
+  <div class="dialog-overlay" id="endExamDialog">
+    <div class="dialog-box" style="max-width:520px;">
+      <div class="dialog-header"><h3>⚠ 確認結束測驗</h3></div>
+      <div class="dialog-body">
+        <p>以下是您的學科測驗作答狀況摘要：</p>
+        <div class="dialog-stats">
+          <div class="dialog-stat-row"><span class="label">學科總題數：</span><span class="value" id="dialogTotal">0</span></div>
+          <div class="dialog-stat-row"><span class="label">已作答題數：</span><span class="value" id="dialogAnswered">0</span></div>
+          <div class="dialog-stat-row"><span class="label">未作答題數：</span><span class="value" id="dialogUnanswered">0</span></div>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btnDialogOverview" style="margin:12px 0;width:100%;padding:10px;font-size:0.9rem;">📋 試題總覽</button>
+        <div id="dialogOverviewGrid" style="display:none;margin-bottom:12px;">
+          <div class="overview-legend" style="margin-bottom:8px;">
+            <div class="legend-item"><div class="legend-dot answered"></div><span>已作答</span></div>
+            <div class="legend-item"><div class="legend-dot marked"></div><span>已標記</span></div>
+            <div class="legend-item"><div class="legend-dot unanswered"></div><span>未作答</span></div>
+          </div>
+          <div class="overview-grid" id="dialogGrid" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <p>確認無誤後，請點選「是」按鈕結束測驗。</p>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-primary" id="btnConfirmEnd">是(Y)</button>
+        <button class="btn btn-secondary" id="btnCancelEnd">否(N)</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script src="js/questions.js"></script>
+  <script src="js/exam.js"></script>
+</body>
+</html>
