@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+*.dmg
+*.exe
+*.AppImage
+data/offline-results/
+data/wrong-questions/
+data/results/
+data/reports/
+data/roster*.json
+data/admin-*.json
+.DS_Store
