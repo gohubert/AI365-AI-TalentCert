@@ -514,6 +514,28 @@ ipcMain.handle('dialog:show-confirm', async (event, options) => {
   return result.response;
 });
 
+// ── IPC: Remote Session (防止同時登入) ──
+
+ipcMain.handle('session:start-remote', async (event, studentId) => {
+  try {
+    return await apiClient.startExamSession(studentId);
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('session:end-remote', async (event, { studentId, sessionId }) => {
+  try {
+    return await apiClient.endExamSession(studentId, sessionId);
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('device:fingerprint', () => {
+  return apiClient.getDeviceFingerprint();
+});
+
 // ── IPC: Remote API ──
 
 ipcMain.handle('api:exam-status', async () => {

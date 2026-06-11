@@ -61,6 +61,14 @@ contextBridge.exposeInMainWorld('api', {
     validateStudent: (studentPassword, adminPassword) =>
       ipcRenderer.invoke('session:validate-student', { studentPassword, adminPassword }),
     loadExam: (adminPassword) => ipcRenderer.invoke('session:load-exam', adminPassword),
+    startRemote: (studentId) => ipcRenderer.invoke('session:start-remote', studentId),
+    endRemote: (studentId, sessionId) =>
+      ipcRenderer.invoke('session:end-remote', { studentId, sessionId }),
+  },
+
+  // ── Device ──
+  device: {
+    fingerprint: () => ipcRenderer.invoke('device:fingerprint'),
   },
 
   // ── Dialog ──
