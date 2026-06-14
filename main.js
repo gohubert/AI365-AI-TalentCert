@@ -250,6 +250,7 @@ function setupAutoUpdater() {
   setTimeout(() => {
     autoUpdater.checkForUpdates().catch(err => {
       console.error('[Updater] Check failed:', err.message);
+      sendToRenderer('update-status', { status: 'error', message: err.message });
     });
   }, 3000);
 }

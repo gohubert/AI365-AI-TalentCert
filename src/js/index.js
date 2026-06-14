@@ -296,6 +296,7 @@
   // ── Auto Update Notification ──
   if (window.api && window.api.onUpdateStatus) {
     var updateOverlay = null;
+    var checkingTimeout = null;
 
     window.api.onUpdateStatus(function (data) {
       var statusTag = document.getElementById('updateStatusTag');
@@ -305,9 +306,20 @@
           statusTag.style.color = '#3B82F6';
           statusTag.textContent = '（檢查更新中...）';
         }
+        if (checkingTimeout) clearTimeout(checkingTimeout);
+        checkingTimeout = setTimeout(function () {
+          if (statusTag && statusTag.textContent === '（檢查更新中...）') {
+            statusTag.style.color = '#10B981';
+            statusTag.textContent = '（已是最新版 ✓）';
+          }
+        }, 10000);
       }
 
       if (data.status === 'up-to-date' || data.status === 'error') {
+        if (checkingTimeout) {
+          clearTimeout(checkingTimeout);
+          checkingTimeout = null;
+        }
         if (statusTag) {
           statusTag.style.color = '#10B981';
           statusTag.textContent = '（已是最新版 ✓）';
