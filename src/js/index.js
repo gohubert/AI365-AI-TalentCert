@@ -128,6 +128,11 @@
       }
     }
 
+    // Exit button
+    btnsHtml += '<div style="margin-top:12px;">'
+      + '<button class="btn btn-secondary" id="btnModeExit" style="padding:12px;font-size:0.95rem;width:100%;">🚪 離開系統</button>'
+      + '</div>';
+
     document.getElementById('modeChoiceBtns').innerHTML = btnsHtml;
     document.getElementById('modeStudentName').textContent = student.name + '，您好！';
     overlay.style.display = 'flex';
@@ -161,6 +166,11 @@
         startFormalExam();
       };
     }
+
+    // Exit
+    document.getElementById('btnModeExit').onclick = function () {
+      if (window.api) window.api.closeApp();
+    };
   }
 
   async function startFormalExam() {
@@ -269,7 +279,7 @@
       var ver = await window.api.getVersion();
       var versionTag = document.getElementById('versionTag');
       if (versionTag) {
-        versionTag.innerHTML = 'v' + ver + ' <span id="updateStatusTag" style="color:#10B981;"></span>';
+        versionTag.innerHTML = 'v' + ver + ' <span id="updateStatusTag" style="margin-left:6px;font-weight:500;"></span>';
       }
     }
 
@@ -291,11 +301,17 @@
       var statusTag = document.getElementById('updateStatusTag');
 
       if (data.status === 'checking') {
-        if (statusTag) statusTag.textContent = '（檢查更新中...）';
+        if (statusTag) {
+          statusTag.style.color = '#3B82F6';
+          statusTag.textContent = '（檢查更新中...）';
+        }
       }
 
       if (data.status === 'up-to-date') {
-        if (statusTag) statusTag.textContent = '（已是最新版 ✓）';
+        if (statusTag) {
+          statusTag.style.color = '#10B981';
+          statusTag.textContent = '（已是最新版 ✓）';
+        }
       }
 
       if (data.status === 'downloading' || data.status === 'ready') {
