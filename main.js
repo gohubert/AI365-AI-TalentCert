@@ -95,12 +95,75 @@ function registerScreenshotBlockers() {
   });
 }
 
+// ── Clean Old Versions ──
+
+async function cleanOldVersions() {
+  try {
+    const appName = '公務AI共通核心能力認證考試系統';
+    const currentPath = app.getPath('exe'); // e.g. /Applications/公務AI共通核心能力認證考試系統.app/Contents/MacOS/...
+    const applicationsDir = '/Applications';
+
+    // Find all matching .app bundles
+    const entries = fs.readdirSync(applicationsDir);
+    const duplicates = entries.filter(name => {
+      if (!name.endsWith('.app')) return false;
+      if (!name.includes(appName) && !name.includes('AI-TalentCert') && !name.includes('ai-talentcert')) return false;
+      // Don't delete the currently running app
+      const fullPath = path.join(applicationsDir, name);
+      return !currentPath.startsWith(fullPath);
+    });
+
+    if (duplicates.length > 0) {
+      console.log('[Cleanup] Found old versions:', duplicates);
+      for (const dup of duplicates) {
+        const dupPath = path.join(applicationsDir, dup);
+        try {
+          // Use shell to remove (needs user permission)
+          const { execSync } = require('child_process');
+          execSync(`rm -rf "${dupPath}"`, { timeout: 5000 });
+          console.log('[Cleanup] Removed:', dupPath);
+        } catch (e) {
+          console.warn('[Cleanup] Could not remove', dupPath, ':', e.message);
+          // If permission denied, show dialog
+          if (e.message.includes('Permission denied') || e.message.includes('EPERM')) {
+            dialog.showMessageBoxSync({
+              type: 'warning',
+              title: '請手動移除舊版',
+              message: `偵測到舊版軟體：\n${dup}\n\n請手動從「應用程式」資料夾刪除舊版後再開啟新版。`,
+              buttons: ['我知道了'],
+            });
+          }
+        }
+      }
+    }
+
+    // Warn if not running from /Applications
+    if (!currentPath.startsWith('/Applications')) {
+      const result = dialog.showMessageBoxSync({
+        type: 'info',
+        title: '建議移至應用程式',
+        message: '建議將此程式拖曳至「應用程式」資料夾後再開啟，以確保更新功能正常運作。',
+        buttons: ['繼續使用', '關閉程式'],
+      });
+      if (result === 1) {
+        app.quit();
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('[Cleanup] Error:', e.message);
+  }
+}
+
 // ── App Lifecycle ──
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Initialize modules
   adminAuth.init(APP_DATA_DIR);
   examStore.init(APP_DATA_DIR);
+
+  // ── Clean up old versions ──
+  await cleanOldVersions();
 
   createWindow();
 
