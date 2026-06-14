@@ -307,7 +307,7 @@
         }
       }
 
-      if (data.status === 'up-to-date') {
+      if (data.status === 'up-to-date' || data.status === 'error') {
         if (statusTag) {
           statusTag.style.color = '#10B981';
           statusTag.textContent = '（已是最新版 ✓）';
