@@ -81,6 +81,21 @@
     var mockUsed = student.mock_attempts_used || 0;
     var maxMock = 3;
 
+    // Display session info if assigned
+    var sessionEl = document.getElementById('modeSessionInfo');
+    if (student.session) {
+      var s = student.session;
+      var dateStr = new Date(s.exam_date).toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'short' });
+      var timeStr = (s.start_time || '').substring(0, 5) + ' - ' + (s.end_time || '').substring(0, 5);
+      var text = '📍 報名場次：' + s.title + '\n📅 時間：' + dateStr + ' ' + timeStr + '\n🏛 地點：' + (s.location || '線上');
+      if (sessionEl) {
+        sessionEl.innerText = text;
+        sessionEl.style.display = 'block';
+      }
+    } else {
+      if (sessionEl) sessionEl.style.display = 'none';
+    }
+
     // Build buttons — 3 separate mock exam buttons
     var btnsHtml = '';
 
