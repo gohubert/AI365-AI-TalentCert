@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>付款結果 — ECPay 金流測試</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.8);
+      --border: rgba(148, 163, 184, 0.15);
+      --accent: #818cf8;
+      --success: #34d399;
+      --danger: #f87171;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans TC', 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      padding: 32px;
+    }
+    body::before {
+      content: '';
+      position: fixed; top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
+      z-index: -1;
+    }
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 48px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+    .result-icon {
+      font-size: 72px;
+      margin-bottom: 20px;
+      animation: pop 0.5s ease;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.3); opacity: 0; }
+      60% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .result-title {
+      font-size: 28px; font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .result-title.success { color: var(--success); }
+    .result-title.failed { color: var(--danger); }
+    .result-msg {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .result-details {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+    .detail-row {
+      display: flex; justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--text-muted); font-size: 14px; }
+    .detail-value {
+      color: var(--text-primary);
+      font-family: 'Inter', monospace;
+      font-size: 14px; font-weight: 500;
+    }
+    .cmv-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+    }
+    .cmv-badge.valid { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+    .cmv-badge.invalid { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      color: white;
+      border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4); }
+  </style>
+</head>
+<body>
+  <div class="result-card">
+    <div class="result-icon" id="result-icon"></div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-details" id="result-details"></div>
+    <a href="/" class="btn">← 返回測試頁面</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success') === 'true';
+    const valid = params.get('valid') === 'true';
+    const tradeNo = params.get('tradeNo') || '-';
+    const rtnCode = params.get('rtnCode') || '-';
+    const rtnMsg = params.get('rtnMsg') || '';
+    const amount = params.get('amount') || '-';
+    const paymentType = params.get('paymentType') || '-';
+
+    const iconEl = document.getElementById('result-icon');
+    const titleEl = document.getElementById('result-title');
+    const msgEl = document.getElementById('result-msg');
+    const detailsEl = document.getElementById('result-details');
+
+    if (success) {
+      iconEl.textContent = '🎉';
+      titleEl.textContent = '付款成功！';
+      titleEl.className = 'result-title success';
+      msgEl.textContent = '恭喜！ECPay AIO 金流串接測試通過。你的 CheckMacValue 計算正確，Callback 接收正常。';
+    } else {
+      iconEl.textContent = '⚠️';
+      titleEl.textContent = '付款未完成';
+      titleEl.className = 'result-title failed';
+      msgEl.textContent = rtnMsg ? decodeURIComponent(rtnMsg) : '交易未成功完成，請檢查參數設定。';
+    }
+
+    detailsEl.innerHTML = `
+      <div class="detail-row">
+        <span class="detail-label">交易編號</span>
+        <span class="detail-value">${tradeNo}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">回應代碼</span>
+        <span class="detail-value">${rtnCode}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">交易金額</span>
+        <span class="detail-value">NT$ ${amount}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">付款方式</span>
+        <span class="detail-value">${paymentType}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">CheckMacValue 驗證</span>
+        <span class="detail-value">
+          <span class="cmv-badge ${valid ? 'valid' : 'invalid'}">
+            ${valid ? '✅ 驗證通過' : '❌ 驗證失敗'}
+          </span>
+        </span>
+      </div>
+    `;
+  </script>
+</body>
+</html>

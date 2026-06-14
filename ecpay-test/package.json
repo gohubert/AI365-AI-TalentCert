@@ -1,0 +1,13 @@
+{
+  "name": "ecpay-payment-test",
+  "version": "1.0.0",
+  "description": "ECPay AIO 金流串接測試 — 公務AI認證考試系統",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test-cmv": "node test-cmv.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

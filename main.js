@@ -157,12 +157,18 @@ function setupAutoUpdater() {
     });
   });
 
-  // 下載完成 → 通知使用者將立即更新
+  // 下載完成 → 記錄版次更新 → 通知使用者 → 自動安裝重啟
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[Updater] Update downloaded:', info.version);
+
+    // 記錄版次更新到雲端
+    const currentVersion = app.getVersion();
+    trackVersionUpdate(currentVersion, info.version);
+
     sendToRenderer('update-status', {
       status: 'ready',
       version: info.version,
+      previousVersion: currentVersion,
       message: '新版本 v' + info.version + ' 已下載完成，程式將立即重新啟動以完成更新。',
     });
     // 3 秒後自動安裝並重啟
@@ -188,6 +194,32 @@ function setupAutoUpdater() {
 function sendToRenderer(channel, data) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(channel, data);
+  }
+}
+
+/**
+ * 記錄自動更新版次到雲端
+ * 透過 Netlify Function 寫入 cert_download_logs（event_type = 'auto_update'）
+ */
+async function trackVersionUpdate(fromVersion, toVersion) {
+  const platform = process.platform === 'darwin' ? 'mac' : 'win';
+  try {
+    const response = await fetch('https://ai365.fans/.netlify/functions/cert-track-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'auto_update',
+        platform: platform,
+        version: toVersion,
+        updated_from: fromVersion,
+        device_fingerprint: require('./lib/api-client').getDeviceFingerprint(),
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await response.json();
+    console.log('[Updater] Version update tracked:', fromVersion, '→', toVersion, data);
+  } catch (err) {
+    console.warn('[Updater] Track version update failed:', err.message);
   }
 }
 

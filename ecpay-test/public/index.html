@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECPay 金流測試 — 公務AI認證考試系統</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.8);
+      --bg-card-hover: rgba(51, 65, 85, 0.6);
+      --border: rgba(148, 163, 184, 0.15);
+      --accent: #818cf8;
+      --accent-glow: rgba(129, 140, 248, 0.25);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.2);
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans TC', 'Inter', -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 40% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+      z-index: -1;
+      animation: bgShift 20s ease-in-out infinite alternate;
+    }
+    @keyframes bgShift {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(-5%, 3%) rotate(2deg); }
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 20px;
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .header .badge::before { content: '🧪'; }
+    .header h1 {
+      font-size: 36px; font-weight: 700;
+      background: linear-gradient(135deg, #e2e8f0, #818cf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .header p { color: var(--text-secondary); font-size: 16px; }
+
+    /* ── Status Bar ── */
+    .status-bar {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .status-item {
+      flex: 1; min-width: 140px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      backdrop-filter: blur(12px);
+    }
+    .status-item .label {
+      font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin-bottom: 4px;
+    }
+    .status-item .value {
+      font-size: 16px; font-weight: 600; color: var(--text-primary);
+      font-family: 'Inter', monospace;
+    }
+    .status-item .value.mono {
+      font-size: 13px; word-break: break-all;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      border-color: rgba(129, 140, 248, 0.3);
+      box-shadow: 0 0 32px var(--accent-glow);
+    }
+    .card h2 {
+      font-size: 20px; font-weight: 600;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card h2 .icon {
+      width: 36px; height: 36px;
+      background: rgba(99, 102, 241, 0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    /* ── Form ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    }
+    .form-group input, .form-group select {
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .form-group input::placeholder { color: var(--text-muted); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px 28px;
+      border: none; border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+      color: white;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      background: rgba(51, 65, 85, 0.6);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: rgba(71, 85, 105, 0.6); }
+    .btn-group { display: flex; gap: 12px; margin-top: 20px; }
+
+    /* ── Info Box ── */
+    .info-box {
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #93c5fd;
+      line-height: 1.6;
+    }
+    .info-box strong { color: #60a5fa; }
+    .info-box code {
+      background: rgba(15, 23, 42, 0.5);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'Inter', monospace;
+    }
+
+    /* ── Test Credentials Grid ── */
+    .creds-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .cred-item {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .cred-item .cred-label {
+      font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .cred-item .cred-value {
+      font-family: 'Inter', monospace;
+      font-size: 14px; font-weight: 600;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    /* ── Orders Table ── */
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .orders-table th {
+      text-align: left;
+      padding: 12px 16px;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .orders-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      color: var(--text-secondary);
+    }
+    .orders-table tr:hover td { background: rgba(51, 65, 85, 0.2); }
+    .orders-table .trade-no {
+      font-family: 'Inter', monospace;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    /* ── Status Badge ── */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+    }
+    .status-badge.pending {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--warning);
+    }
+    .status-badge.paid {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--success);
+    }
+    .status-badge.failed {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--danger);
+    }
+
+    /* ── Log Console ── */
+    .log-console {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Inter', 'Menlo', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .log-entry { color: var(--text-muted); }
+    .log-entry.success { color: var(--success); }
+    .log-entry.error { color: var(--danger); }
+    .log-entry.info { color: #60a5fa; }
+    .log-entry .timestamp { color: var(--text-muted); margin-right: 8px; }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* ── Steps ── */
+    .steps {
+      display: flex; gap: 0; margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .step {
+      flex: 1; min-width: 120px;
+      padding: 14px 16px;
+      text-align: center;
+      position: relative;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+    }
+    .step:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+    .step:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .step .step-num {
+      width: 24px; height: 24px;
+      background: var(--border);
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .step.active .step-num {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .step.done .step-num {
+      background: var(--success);
+      color: white;
+    }
+    .step .step-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .step.active .step-label { color: var(--accent); font-weight: 500; }
+    .step.done .step-label { color: var(--success); }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      .header h1 { font-size: 28px; }
+      .status-bar { flex-direction: column; }
+      .btn-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="badge">測試環境 Staging</div>
+      <h1>ECPay 金流串接測試</h1>
+      <p>公務AI共通核心能力認證考試系統 — 綠界 AIO 金流整合驗證</p>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="label">商店編號</div>
+        <div class="value mono">3002607</div>
+      </div>
+      <div class="status-item">
+        <div class="label">環境</div>
+        <div class="value">🟢 測試 (Stage)</div>
+      </div>
+      <div class="status-item">
+        <div class="label">加密方式</div>
+        <div class="value">SHA256</div>
+      </div>
+      <div class="status-item">
+        <div class="label">已建立訂單</div>
+        <div class="value" id="order-count">0</div>
+      </div>
+    </div>
+
+    <!-- Flow Steps -->
+    <div class="steps">
+      <div class="step active" id="step-1">
+        <div class="step-num">1</div>
+        <div class="step-label">建立訂單</div>
+      </div>
+      <div class="step" id="step-2">
+        <div class="step-num">2</div>
+        <div class="step-label">導向付款頁</div>
+      </div>
+      <div class="step" id="step-3">
+        <div class="step-num">3</div>
+        <div class="step-label">消費者付款</div>
+      </div>
+      <div class="step" id="step-4">
+        <div class="step-num">4</div>
+        <div class="step-label">接收 Callback</div>
+      </div>
+      <div class="step" id="step-5">
+        <div class="step-num">5</div>
+        <div class="step-label">完成 ✓</div>
+      </div>
+    </div>
+
+    <!-- Create Order Card -->
+    <div class="card">
+      <h2><span class="icon">💳</span> 建立測試訂單</h2>
+
+      <div class="info-box">
+        <strong>💳 使用測試信用卡付款</strong><br>
+        送出訂單後會導向綠界付款頁，請使用以下測試信用卡完成付款：<br>
+        卡號 <code>4311-9522-2222-2222</code>，有效期限任意未來日期，CVV <code>222</code>，3DS 驗證碼 <code>1234</code>
+      </div>
+
+      <form id="order-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>交易金額 (TWD)</label>
+            <input type="number" id="amount" value="100" min="1" placeholder="輸入金額">
+          </div>
+          <div class="form-group">
+            <label>商品名稱</label>
+            <input type="text" id="item-name" value="公務AI認證考試報名費" placeholder="商品名稱">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group full">
+            <label>交易描述</label>
+            <input type="text" id="description" value="公務AI共通核心能力認證考試系統-測試交易" placeholder="交易描述">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary">🚀 送出訂單（導向綠界付款頁）</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Test Credentials -->
+    <div class="card">
+      <h2><span class="icon">🔑</span> 測試環境帳號</h2>
+      <div class="creds-grid">
+        <div class="cred-item">
+          <div class="cred-label">MerchantID</div>
+          <div class="cred-value">3002607</div>
+        </div>
+        <div class="cred-item">
+          <div class="cred-label">HashKey</div>
+          <div class="cred-value">pwFHCqoQZGmho4w6</div>
+        </div>
+        <div class="cred-item">
+          <div class="cred-label">HashIV</div>
+          <div class="cred-value">EkRm7iFT261dpevs</div>
+        </div>
+        <div class="cred-item">
+          <div class="cred-label">測試信用卡</div>
+          <div class="cred-value">4311-9522-2222-2222</div>
+        </div>
+        <div class="cred-item">
+          <div class="cred-label">CVV</div>
+          <div class="cred-value">222</div>
+        </div>
+        <div class="cred-item">
+          <div class="cred-label">3DS 驗證碼</div>
+          <div class="cred-value">1234</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders List -->
+    <div class="card">
+      <h2><span class="icon">📋</span> 訂單記錄</h2>
+      <div id="orders-container">
+        <div class="empty-state">
+          <div class="icon">📦</div>
+          <p>尚未建立任何訂單<br>送出第一筆測試交易看看吧！</p>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="refreshOrders()">🔄 重新整理</button>
+      </div>
+    </div>
+
+    <!-- Log Console -->
+    <div class="card">
+      <h2><span class="icon">🖥️</span> 操作紀錄</h2>
+      <div class="log-console" id="log-console">
+        <div class="log-entry info"><span class="timestamp">[啟動]</span> ECPay 金流測試系統已就緒</div>
+        <div class="log-entry info"><span class="timestamp">[設定]</span> 環境: 測試 (Stage) | 商店: 3002607 | 加密: SHA256</div>
+        <div class="log-entry info"><span class="timestamp">[設定]</span> SimulatePaid=1 已啟用（自動模擬付款）</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const logConsole = document.getElementById('log-console');
+    const ordersContainer = document.getElementById('orders-container');
+
+    function log(msg, type = '') {
+      const time = new Date().toLocaleTimeString('zh-TW');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.innerHTML = `<span class="timestamp">[${time}]</span> ${msg}`;
+      logConsole.appendChild(entry);
+      logConsole.scrollTop = logConsole.scrollHeight;
+    }
+
+    // ── 建立訂單 ──
+    document.getElementById('order-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const amount = document.getElementById('amount').value;
+      const itemName = document.getElementById('item-name').value;
+      const description = document.getElementById('description').value;
+
+      log(`建立訂單: 金額=${amount}, 商品=${itemName}`, 'info');
+
+      // 更新步驟指示
+      setStep(2);
+
+      // 用新視窗或表單提交
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/api/create-order';
+      // 在新分頁開啟（避免離開測試頁面）
+      form.target = '_blank';
+
+      const fields = { amount, itemName, description };
+      for (const [k, v] of Object.entries(fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = k;
+        input.value = v;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+
+      log('✅ 訂單已送出，新分頁將導向綠界付款頁', 'success');
+      log('⏳ 等待付款完成與 Callback...', 'info');
+
+      // 定期檢查訂單狀態
+      setTimeout(() => refreshOrders(), 3000);
+      setTimeout(() => refreshOrders(), 8000);
+      setTimeout(() => refreshOrders(), 15000);
+    });
+
+    // ── 查詢訂單 ──
+    async function refreshOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        const json = await res.json();
+
+        if (!json.success || json.data.length === 0) {
+          return;
+        }
+
+        document.getElementById('order-count').textContent = json.data.length;
+
+        let html = `<table class="orders-table">
+          <thead>
+            <tr>
+              <th>交易編號</th>
+              <th>金額</th>
+              <th>商品</th>
+              <th>狀態</th>
+              <th>建立時間</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        for (const order of json.data) {
+          const statusClass = order.status === 'paid' ? 'paid' : order.status === 'failed' ? 'failed' : 'pending';
+          const statusText = order.status === 'paid' ? '✅ 已付款' : order.status === 'failed' ? '❌ 失敗' : '⏳ 待付款';
+
+          html += `<tr>
+            <td class="trade-no">${order.tradeNo}</td>
+            <td>NT$ ${order.amount}</td>
+            <td>${order.itemName || '-'}</td>
+            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            <td>${order.createdAt || '-'}</td>
+          </tr>`;
+
+          // 如果有已付款的訂單，更新步驟
+          if (order.status === 'paid') {
+            setStep(5);
+          }
+        }
+
+        html += `</tbody></table>`;
+        ordersContainer.innerHTML = html;
+
+      } catch (err) {
+        log(`查詢訂單失敗: ${err.message}`, 'error');
+      }
+    }
+
+    // ── 更新步驟指示 ──
+    function setStep(n) {
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`step-${i}`);
+        el.classList.remove('active', 'done');
+        if (i < n) el.classList.add('done');
+        else if (i === n) el.classList.add('active');
+      }
+    }
+
+    // 頁面載入時查詢既有訂單
+    refreshOrders();
+  </script>
+</body>
+</html>

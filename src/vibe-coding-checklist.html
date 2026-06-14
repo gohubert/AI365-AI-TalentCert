@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Coding 治理自我檢核表｜楊老師 AI365</title>
+<meta name="description" content="30 題揭露你的組織離 Vibe Coding 資安風暴有多近。基於 2026 年最新研究與真實案例設計的企業 AI 治理成熟度自評工具。">
+<style>
+  :root {
+    --bg: #0f1419;
+    --bg-card: #1a1f2e;
+    --bg-elevated: #232a3d;
+    --text: #e8eaed;
+    --text-dim: #9aa3b2;
+    --text-faint: #6b7280;
+    --accent: #ff6b4a;
+    --accent-soft: #ff6b4a26;
+    --border: #2a3142;
+    --green: #4ade80;
+    --green-soft: #4ade8020;
+    --amber: #fbbf24;
+    --amber-soft: #fbbf2420;
+    --red: #f87171;
+    --red-soft: #f8717120;
+    --purple: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  /* Header */
+  .header {
+    padding: 32px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  .brand::before {
+    content: "";
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.25;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+
+  h1 .highlight {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 580px;
+  }
+
+  /* Progress Bar */
+  .progress-wrap {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+    padding: 16px 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .progress-text {
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-score {
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+    gap: 2px;
+  }
+
+  .progress-seg {
+    flex: 1;
+    height: 100%;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    transition: background 0.3s ease;
+  }
+
+  .progress-seg.filled-green { background: var(--green); }
+  .progress-seg.filled-amber { background: var(--amber); }
+  .progress-seg.filled-red { background: var(--red); }
+
+  /* Stage */
+  .stage {
+    margin-bottom: 40px;
+  }
+
+  .stage-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+
+  .stage-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stage-30 .stage-tag { background: var(--green-soft); color: var(--green); }
+  .stage-60 .stage-tag { background: var(--amber-soft); color: var(--amber); }
+  .stage-90 .stage-tag { background: var(--red-soft); color: var(--red); }
+
+  .stage-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .stage-sub {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 20px;
+    padding-left: 0;
+  }
+
+  /* Question */
+  .question {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s ease;
+  }
+
+  .question.answered {
+    border-color: var(--bg-elevated);
+  }
+
+  .question.answered-yes {
+    border-left: 3px solid var(--green);
+  }
+
+  .question.answered-maybe {
+    border-left: 3px solid var(--amber);
+  }
+
+  .question.answered-no {
+    border-left: 3px solid var(--red);
+  }
+
+  .question-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .question-text {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    color: var(--text);
+  }
+
+  .options {
+    display: flex;
+    gap: 8px;
+  }
+
+  .option {
+    flex: 1;
+    padding: 10px 8px;
+    background: var(--bg-elevated);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+
+  .option:hover {
+    background: #2c354a;
+    color: var(--text);
+  }
+
+  .option.selected[data-value="yes"] {
+    background: var(--green-soft);
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .option.selected[data-value="maybe"] {
+    background: var(--amber-soft);
+    color: var(--amber);
+    border-color: var(--amber);
+  }
+
+  .option.selected[data-value="no"] {
+    background: var(--red-soft);
+    color: var(--red);
+    border-color: var(--red);
+  }
+
+  /* Submit */
+  .submit-area {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    margin-top: 32px;
+    text-align: center;
+  }
+
+  .submit-area p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .submit-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: #ff7d5f;
+    transform: translateY(-1px);
+  }
+
+  .submit-btn:disabled {
+    background: var(--bg-elevated);
+    color: var(--text-faint);
+    cursor: not-allowed;
+  }
+
+  /* Result */
+  .result {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .result.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-hero {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .result-eyebrow {
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .result-score {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+  }
+
+  .result-score-max {
+    font-size: 24px;
+    color: var(--text-faint);
+    font-weight: 600;
+  }
+
+  .result-level {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    margin-top: 12px;
+  }
+
+  .result-desc {
+    color: var(--text-dim);
+    font-size: 14px;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .level-mature { color: var(--green); }
+  .level-established { color: #6ee7b7; }
+  .level-developing { color: var(--amber); }
+  .level-risk { color: var(--accent); }
+  .level-critical { color: var(--red); }
+
+  /* Stage breakdown */
+  .breakdown {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .breakdown-title {
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .stage-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stage-row:last-child { border-bottom: none; }
+
+  .stage-row-label {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .stage-row-label small {
+    display: block;
+    color: var(--text-faint);
+    font-weight: 400;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .stage-row-bar {
+    flex: 1.4;
+    height: 8px;
+    background: var(--bg-elevated);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .stage-row-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+
+  .stage-row-score {
+    width: 56px;
+    text-align: right;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+  }
+
+  /* Advice */
+  .advice {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .advice-eyebrow {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .advice h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .advice p {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .advice p:last-child { margin-bottom: 0; }
+
+  .advice strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* Actions */
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-secondary {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+  }
+
+  .btn-secondary:hover {
+    background: var(--bg-elevated);
+    border-color: var(--accent);
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .footer strong {
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* Survey state hide when result */
+  .survey-section.hidden {
+    display: none;
+  }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    h1 { font-size: 24px; }
+    .container { padding: 20px 16px; }
+    .question-text { font-size: 14px; }
+    .option { font-size: 13px; padding: 9px 6px; }
+    .result-score { font-size: 60px; }
+    .stage-row { flex-direction: column; align-items: stretch; gap: 8px; }
+    .stage-row-score { text-align: left; width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="header">
+    <div class="brand">楊老師 AI365 · 公部門 AI 治理工具</div>
+    <h1>Vibe Coding 治理<br><span class="highlight">自我檢核表</span></h1>
+    <p class="subtitle">30 題揭露你的組織離資安風暴有多近。基於 Veracode、Georgia Tech、McKinsey、GitGuardian 等 2026 上半年最新研究與真實案例設計。每題只有「是 / 不確定 / 否」三個選項，三分鐘完成。</p>
+  </header>
+
+  <div class="survey-section" id="survey">
+
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="progress-text">已完成 <span id="answered">0</span> / 30 題</span>
+        <span class="progress-score">當前得分 <span id="current-score">0</span> / 90</span>
+      </div>
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Stage 30 -->
+    <section class="stage stage-30">
+      <div class="stage-header">
+        <span class="stage-tag">第一個 30 天</span>
+        <span class="stage-title">止血與盤點</span>
+      </div>
+      <p class="stage-sub">先別管治理框架做得多漂亮，先讓組織知道自己有多裸。</p>
+      <div id="stage-30-questions"></div>
+    </section>
+
+    <!-- Stage 60 -->
+    <section class="stage stage-60">
+      <div class="stage-header">
+        <span class="stage-tag">第二個 60 天</span>
+        <span class="stage-title">最小可行治理</span>
+      </div>
+      <p class="stage-sub">把該管什麼、怎麼管寫進制度。重點是最小可行，不是一次到位。</p>
+      <div id="stage-60-questions"></div>
+    </section>
+
+    <!-- Stage 90 -->
+    <section class="stage stage-90">
+      <div class="stage-header">
+        <span class="stage-tag">第三個 90 天</span>
+        <span class="stage-title">韌性與文化</span>
+      </div>
+      <p class="stage-sub">把治理從制度推進到能力與文化，連結到法規與長期成熟度。</p>
+      <div id="stage-90-questions"></div>
+    </section>
+
+    <div class="submit-area">
+      <p>完成所有題目後，看看你的組織落在哪個成熟度等級</p>
+      <button class="submit-btn" id="submit-btn" disabled>查看我的成熟度等級</button>
+    </div>
+
+  </div>
+
+  <!-- Result -->
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="result-eyebrow">你的組織治理成熟度</div>
+      <div class="result-score">
+        <span id="final-score">0</span><span class="result-score-max"> / 90</span>
+      </div>
+      <div class="result-level" id="final-level">—</div>
+      <p class="result-desc" id="final-desc">—</p>
+    </div>
+
+    <div class="breakdown">
+      <div class="breakdown-title">三階段分數拆解</div>
+      <div class="stage-row">
+        <div class="stage-row-label">
+          止血與盤點
+          <small>第一個 30 天的基礎工作</small>
+        </div>
+        <div class="stage-row-bar">
+          <div class="stage-row-fill" id="bar-30" style="background: var(--green); width: 0%;"></div>
+        </div>
+        <div class="stage-row-score" id="score-30">0 / 30</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-row-label">
+          最小可行治理
+          <small>第二個 60 天的制度建立</small>
+        </div>
+        <div class="stage-row-bar">
+          <div class="stage-row-fill" id="bar-60" style="background: var(--amber); width: 0%;"></div>
+        </div>
+        <div class="stage-row-score" id="score-60">0 / 30</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-row-label">
+          韌性與文化
+          <small>第三個 90 天的能力升級</small>
+        </div>
+        <div class="stage-row-bar">
+          <div class="stage-row-fill" id="bar-90" style="background: var(--red); width: 0%;"></div>
+        </div>
+        <div class="stage-row-score" id="score-90">0 / 30</div>
+      </div>
+    </div>
+
+    <div class="advice">
+      <div class="advice-eyebrow">楊老師的下一步建議</div>
+      <h3 id="advice-title">—</h3>
+      <div id="advice-body"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-secondary" id="retry-btn">重新測驗</button>
+      <button class="btn-secondary" id="share-btn">複製分數摘要</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p><strong>楊老師 AI365</strong> · 帶著想法來，帶著作法走，帶著成果笑</p>
+    <p>本檢核表為演講教學用途，不構成法律或合規建議。資料完全在你的瀏覽器運算，沒有任何資料會被上傳。</p>
+    <p style="margin-top: 8px;"><a href="https://ai365.fans" target="_blank" rel="noopener">ai365.fans</a></p>
+  </footer>
+
+</div>
+
+<script>
+const QUESTIONS = {
+  stage30: [
+    "我們有書面盤點過去 30 天員工使用過哪些 AI 工具",
+    "我們有一張清單列出組織內所有使用 AI 的應用、自動化或 Agent",
+    "我們最近 90 天內掃描過程式碼倉庫與自動化平台是否有外洩的 API 金鑰",
+    "我們知道有哪些員工把公司資料貼進過公開 LLM（如 ChatGPT、Claude 網頁版）",
+    "我們知道用 AI 寫的程式碼目前跑在哪些生產環境",
+    "我們有指定一位 AI 治理 Owner 對盤點工作負最終責任",
+    "我們知道組織內哪些 AI Agent 有讀寫公司資料庫的權限",
+    "我們對組織訂閱的所有 AI 工具有完整清單，包含員工自費訂閱的",
+    "我們有要求員工簽署 AI 工具使用同意書或 AUP",
+    "我們知道使用中的 AI 工具是否會把我們的資料拿去訓練"
+  ],
+  stage60: [
+    "我們有書面的 AI Acceptable Use Policy 並已公告全員",
+    "我們有 Green Zone / Red Zone 程式碼分類政策，明確說明哪些 AI 程式碼必須人工審查",
+    "我們的 code review 流程把 Cursor rules、Claude config 等 AI 設定檔納入審查範圍",
+    "我們有明確規定哪些資料絕對不能輸入公開 LLM",
+    "我們對 AI 生成的程式碼有強制的 static analysis 流程",
+    "我們有即時 secret detection 機制，在 commit 之前攔截硬編碼憑證",
+    "我們有把 AI 治理對應到 ISO 42001 或 NIST AI RMF 的控制項",
+    "我們的採購流程已將 AI 工具的資料處理條款納入評估",
+    "我們對 AI Agent 實施了權限最小化原則（least privilege）",
+    "我們對使用 Vibe Coding 工具的非技術同仁有設限或審查機制"
+  ],
+  stage90: [
+    "我們做過至少一次內部 prompt injection 演練",
+    "我們的非技術員工接受過 AI 安全意識訓練，不只技術同仁",
+    "我們有度量機制追蹤 AI 輔助程式碼的 bug 率與漏洞率",
+    "我們已評估 EU AI Act 在 2026 年 8 月後對組織的衝擊",
+    "我們有書面的 AI 事件應變流程（incident response）",
+    "我們有定期重新評估 AI BOM，至少每季一次",
+    "我們的最高管理層有定期收到 AI 治理報告",
+    "我們有指定的 AI 治理委員會或對應的決策機制",
+    "我們有與供應鏈、外包廠商對齊 AI 治理要求",
+    "我們有針對 AI Agent 失控的緊急停止機制（kill switch）"
+  ]
+};
+
+const SCORE_MAP = { yes: 3, maybe: 1, no: 0 };
+
+const state = {
+  answers: {} // key: "stage30-0", value: "yes" | "maybe" | "no"
+};
+
+function renderQuestions() {
+  ['stage30', 'stage60', 'stage90'].forEach((stage, sIdx) => {
+    const container = document.getElementById(`stage-${[30, 60, 90][sIdx]}-questions`);
+    container.innerHTML = QUESTIONS[stage].map((text, idx) => {
+      const qNum = sIdx * 10 + idx + 1;
+      const key = `${stage}-${idx}`;
+      return `
+        <div class="question" data-key="${key}" data-stage="${stage}">
+          <div class="question-num">Q${String(qNum).padStart(2, '0')}</div>
+          <div class="question-text">${text}</div>
+          <div class="options">
+            <button class="option" data-value="yes">是</button>
+            <button class="option" data-value="maybe">不確定</button>
+            <button class="option" data-value="no">否</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  });
+}
+
+function attachListeners() {
+  document.querySelectorAll('.option').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const q = e.target.closest('.question');
+      const key = q.dataset.key;
+      const value = e.target.dataset.value;
+
+      // remove other selected in same question
+      q.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+      e.target.classList.add('selected');
+
+      // update question border
+      q.classList.remove('answered-yes', 'answered-maybe', 'answered-no');
+      q.classList.add('answered', `answered-${value}`);
+
+      state.answers[key] = value;
+      updateProgress();
+    });
+  });
+
+  document.getElementById('submit-btn').addEventListener('click', showResult);
+  document.getElementById('retry-btn').addEventListener('click', resetAll);
+  document.getElementById('share-btn').addEventListener('click', copyShare);
+}
+
+function updateProgress() {
+  const total = 30;
+  const answered = Object.keys(state.answers).length;
+  const currentScore = Object.values(state.answers).reduce((s, v) => s + SCORE_MAP[v], 0);
+
+  document.getElementById('answered').textContent = answered;
+  document.getElementById('current-score').textContent = currentScore;
+
+  // segment colors based on stage
+  const bar = document.getElementById('progress-bar');
+  bar.innerHTML = '';
+  for (let i = 0; i < 30; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'progress-seg';
+    let stage;
+    if (i < 10) stage = 'stage30';
+    else if (i < 20) stage = 'stage60';
+    else stage = 'stage90';
+
+    const stageIdx = i % 10;
+    const key = `${stage}-${stageIdx}`;
+    if (state.answers[key]) {
+      if (i < 10) seg.classList.add('filled-green');
+      else if (i < 20) seg.classList.add('filled-amber');
+      else seg.classList.add('filled-red');
+    }
+    bar.appendChild(seg);
+  }
+
+  document.getElementById('submit-btn').disabled = answered < 30;
+}
+
+function calculateStageScore(stage) {
+  let total = 0;
+  for (let i = 0; i < 10; i++) {
+    const key = `${stage}-${i}`;
+    if (state.answers[key]) total += SCORE_MAP[state.answers[key]];
+  }
+  return total;
+}
+
+function getLevel(score) {
+  if (score >= 75) return {
+    name: "成熟治理 Mature",
+    cls: "level-mature",
+    desc: "你的組織在 AI 治理上明顯走在前面，可以開始扮演供應鏈中的標竿角色，協助下游廠商升級。建議重點放在 EU AI Act、SOC 2 Type II 等外部認證取得，把治理成熟度轉換成商務競爭力。"
+  };
+  if (score >= 60) return {
+    name: "穩健發展 Established",
+    cls: "level-established",
+    desc: "基礎制度已經到位，但離成熟還有一段距離。建議檢視分階段分數最低的項目，集中資源補強。特別注意 90 天韌性層的演練與度量，這通常是企業最容易忽略的環節。"
+  };
+  if (score >= 40) return {
+    name: "起步階段 Developing",
+    cls: "level-developing",
+    desc: "你的組織已經意識到 Vibe Coding 風險，但治理還停在零散階段。建議先把 30 天盤點完整做完，把 AI BOM 跟 AUP 訂出來，再往 60 天治理推進。沒有盤點清單，後面所有政策都會空轉。"
+  };
+  if (score >= 20) return {
+    name: "警報區 At Risk",
+    cls: "level-risk",
+    desc: "你的組織目前處於高暴露狀態。研究顯示 91.5% 的 Vibe Coded 應用程式有至少一個漏洞，AI 輔助提交暴露 secret 的機率是人類的兩倍。建議下週一就指定 AI 治理 Owner，並啟動 30 天止血盤點。"
+  };
+  return {
+    name: "高風險 Critical",
+    cls: "level-critical",
+    desc: "你的組織完全處於裸奔狀態，建議在看完這份檢核表後立刻召開緊急會議。第一件事不是制定政策，而是先掃一輪 Git 跟自動化平台，找出有沒有正在外洩的 API 金鑰。這個動作可能就避免一場百萬級的資安事件。"
+  };
+}
+
+function getAdvice(score, stage30, stage60, stage90) {
+  if (score >= 75) {
+    return {
+      title: "你已經是領先群，現在該做的是「外部化」價值",
+      body: `<p>當組織內部治理成熟之後，下一步是把成熟度轉換成商業資產。<strong>建議三個方向</strong>，把治理流程文件化以對應 EU AI Act 在 2026 年 8 月後的執行要求，這會直接影響歐盟客戶的訂單。把 AI 治理成果寫入 RFP 回應，當作差異化武器。協助供應鏈廠商建立對齊的治理流程，讓你的成熟度變成下游的入場券。</p><p>另外建議定期做紅隊演練，因為 2026 年的攻擊面變化速度遠超治理框架更新速度，演練是唯一能驗證制度真實韌性的方法。</p>`
+    };
+  }
+  if (score >= 60) {
+    const weakest = Math.min(stage30, stage60, stage90);
+    let focus = '';
+    if (weakest === stage30) focus = '盤點層還有缺口，建議重新做一次 AI BOM 與 secret 掃描，把基礎打穩。';
+    else if (weakest === stage60) focus = '治理制度需要補強，特別是 Rules 設定檔審查跟 AUP 公告的具體執行。';
+    else focus = '韌性與文化是你的瓶頸，建議啟動 prompt injection 演練跟非技術同仁的安全意識訓練。';
+    return {
+      title: "穩健發展中，集中火力補強最弱的一段",
+      body: `<p>你的整體治理已經到一定水準，現在要做的是找出最弱的環節集中投資。<strong>從你的分數看</strong>，${focus}</p><p>建議建立一個「治理 KPI 儀表板」，追蹤 AI 輔助提交的比率、AI 程式碼的漏洞率、未盤點 Agent 的數量這三個指標。沒有度量就沒有改善，這是從 Established 升級到 Mature 的關鍵。</p>`
+    };
+  }
+  if (score >= 40) {
+    return {
+      title: "起步階段，先把 30 天止血做完",
+      body: `<p>你的組織已經啟動了一些 AI 治理動作，但散落各處沒有形成體系。<strong>建議在接下來 30 天內</strong>聚焦三件事，第一件是發出 AI 工具使用問卷做匿名盤點。第二件是用 GitGuardian、TruffleHog 等工具掃一次組織內所有 Git 倉庫與自動化平台。第三件是指定一位 AI 治理 Owner。</p><p>這三件事做完，你會有第一次「看清楚自己有多裸」的震撼。然後再進入 60 天治理階段，整個推進會順很多。</p>`
+    };
+  }
+  if (score >= 20) {
+    return {
+      title: "警報區，這週就要採取行動",
+      body: `<p>你的組織目前累積了相當高的 Vibe Coding 風險。<strong>下週一一件事</strong>，打開 Excel 新增一張工作表，欄位是「員工姓名、使用的 AI 工具、是否曾貼公司資料、是否用 AI 寫過程式碼跑在生產環境」。發給全員填寫，不抓人、不究責，純粹是建立基線。</p><p>這張表會是你 30 天盤點的第一個資產，也是後續所有治理動作的起點。同時間，請技術主管立刻掃一輪 Git 倉庫的 secret 外洩狀況。<strong>沒有盤點，就沒有治理</strong>。</p>`
+    };
+  }
+  return {
+    title: "高風險，建議今天就召開緊急會議",
+    body: `<p>你的組織目前完全沒有 Vibe Coding 治理機制，這是極高風險狀態。Lovable 平台 48 天才修補漏洞、Moltbook 50 萬虛假帳號、Jason Lemkin 的生產資料庫被 AI 刪除，這些都不是科幻情節，是 2026 年真實發生的事。</p><p><strong>建議今天就做的三件事</strong>，召開資訊安全與管理層的緊急會議報告本次評估結果。指派一位 AI 治理 Owner，這個人不必懂技術，但必須有跨部門的協調權限。立即啟動 Git 倉庫的 secret 掃描，找出有沒有正在外洩的 API 金鑰。</p><p>不要先想完美方案，先做完這三件事，下週再規劃 30 天盤點。<strong>想多了都是問題，做多了都是答案</strong>。</p>`
+  };
+}
+
+function showResult() {
+  const stage30 = calculateStageScore('stage30');
+  const stage60 = calculateStageScore('stage60');
+  const stage90 = calculateStageScore('stage90');
+  const total = stage30 + stage60 + stage90;
+
+  document.getElementById('survey').classList.add('hidden');
+  const result = document.getElementById('result');
+  result.classList.add('active');
+
+  document.getElementById('final-score').textContent = total;
+
+  const level = getLevel(total);
+  const levelEl = document.getElementById('final-level');
+  levelEl.textContent = level.name;
+  levelEl.className = 'result-level ' + level.cls;
+  document.getElementById('final-desc').textContent = level.desc;
+
+  document.getElementById('score-30').textContent = `${stage30} / 30`;
+  document.getElementById('score-60').textContent = `${stage60} / 30`;
+  document.getElementById('score-90').textContent = `${stage90} / 30`;
+
+  setTimeout(() => {
+    document.getElementById('bar-30').style.width = (stage30 / 30 * 100) + '%';
+    document.getElementById('bar-60').style.width = (stage60 / 30 * 100) + '%';
+    document.getElementById('bar-90').style.width = (stage90 / 30 * 100) + '%';
+  }, 50);
+
+  const advice = getAdvice(total, stage30, stage60, stage90);
+  document.getElementById('advice-title').textContent = advice.title;
+  document.getElementById('advice-body').innerHTML = advice.body;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetAll() {
+  state.answers = {};
+  document.querySelectorAll('.option.selected').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.question').forEach(q => {
+    q.classList.remove('answered', 'answered-yes', 'answered-maybe', 'answered-no');
+  });
+  document.getElementById('survey').classList.remove('hidden');
+  document.getElementById('result').classList.remove('active');
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function copyShare() {
+  const total = document.getElementById('final-score').textContent;
+  const level = document.getElementById('final-level').textContent;
+  const s30 = document.getElementById('score-30').textContent;
+  const s60 = document.getElementById('score-60').textContent;
+  const s90 = document.getElementById('score-90').textContent;
+
+  const text = `🛡️ Vibe Coding 治理自我檢核結果
+
+總分 ${total} / 90
+等級 ${level}
+
+▸ 止血與盤點 ${s30}
+▸ 最小可行治理 ${s60}
+▸ 韌性與文化 ${s90}
+
+來自楊老師 AI365 的演講教材
+ai365.fans`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('share-btn');
+    const originalText = btn.textContent;
+    btn.textContent = '已複製到剪貼簿 ✓';
+    setTimeout(() => { btn.textContent = originalText; }, 2000);
+  }).catch(() => {
+    alert('複製失敗，請手動截圖分享');
+  });
+}
+
+// init
+renderQuestions();
+attachListeners();
+updateProgress();
+</script>
+
+</body>
+</html>
