@@ -3,9 +3,8 @@
  *
  * 流程：
  * 1. 輸入身分證字號 → 雲端驗證（含繳費狀態）
- * 2. 驗證通過 → 查詢考試模式（practice / exam）
- * 3. practice → 下載模擬題（含答案+詳解）→ 進入刷題模式
- *    exam → 進入考前須知 → 正式考試
+ * 2. 驗證通過 → 查詢考試模式
+ * 3. 顯示 3 次模擬考 + 錯題練習 + 正式考試（需管理者開放）
  */
 (function () {
   'use strict';
@@ -79,28 +78,70 @@
   async function showModeChoice(student) {
     var wrongQuestions = await getWrongQuestions(student.id);
     var overlay = document.getElementById('modeChoiceOverlay');
+    var mockUsed = student.mock_attempts_used || 0;
+    var maxMock = 3;
 
-    // Build buttons
-    var btnsHtml = '<button class="btn btn-primary" id="btnModePractice" style="padding:14px;font-size:1rem;width:100%;">📝 模擬練習</button>';
+    // Build buttons — 3 separate mock exam buttons
+    var btnsHtml = '';
 
+    for (var i = 1; i <= maxMock; i++) {
+      var completed = i <= mockUsed;
+      var isCurrent = i === mockUsed + 1;
+      var isLocked = i > mockUsed + 1;
+
+      if (completed) {
+        btnsHtml += '<button class="btn" style="padding:14px;font-size:0.95rem;width:100%;background:#E2E8F0;color:#64748B;cursor:default;" disabled>'
+          + '✅ 第 ' + i + ' 次模擬考（已完成）</button>';
+      } else if (isCurrent) {
+        btnsHtml += '<button class="btn btn-primary" id="btnMock' + i + '" style="padding:14px;font-size:1rem;width:100%;">'
+          + '📝 第 ' + i + ' 次模擬考</button>';
+      } else {
+        btnsHtml += '<button class="btn" style="padding:14px;font-size:0.95rem;width:100%;background:#F1F5F9;color:#94A3B8;cursor:default;" disabled>'
+          + '🔒 第 ' + i + ' 次模擬考（需先完成前一次）</button>';
+      }
+    }
+
+    // Wrong questions review
     if (wrongQuestions.length > 0) {
       btnsHtml += '<button class="btn btn-outline" id="btnModeWrong" style="padding:14px;font-size:1rem;width:100%;">❌ 錯題練習（<span id="wrongCountBadge">' + wrongQuestions.length + '</span> 題）</button>';
     }
 
+    // Formal exam — check if exam room is activated
     if (student.paid || student.allowExam) {
-      btnsHtml += '<button class="btn btn-success" id="btnModeFormal" style="padding:14px;font-size:1.05rem;width:100%;">🏆 正式考試</button>';
+      var examActive = false;
+      try {
+        var statusResult = await window.api.remote.examStatus();
+        if (statusResult.success && statusResult.data && statusResult.data.active) {
+          examActive = true;
+        }
+      } catch(e) { /* no exam active */ }
+
+      if (examActive) {
+        btnsHtml += '<div style="border-top:2px solid #E2E8F0;margin-top:8px;padding-top:12px;">'
+          + '<button class="btn btn-success" id="btnModeFormal" style="padding:14px;font-size:1.05rem;width:100%;">🏆 進入考場（正式考試）</button>'
+          + '</div>';
+      } else {
+        btnsHtml += '<div style="border-top:2px solid #E2E8F0;margin-top:8px;padding-top:12px;">'
+          + '<div style="text-align:center;color:#94A3B8;font-size:0.85rem;padding:10px;">'
+          + '🔒 正式考試尚未開放，請等待管理者啟動考場'
+          + '</div></div>';
+      }
     }
 
     document.getElementById('modeChoiceBtns').innerHTML = btnsHtml;
     document.getElementById('modeStudentName').textContent = student.name + '，您好！';
     overlay.style.display = 'flex';
 
-    // Practice
-    document.getElementById('btnModePractice').onclick = function () {
-      overlay.style.display = 'none';
-      sessionStorage.setItem('examMode', 'practice');
-      startRandomPractice();
-    };
+    // Bind mock exam button (only the current one)
+    var currentMockBtn = document.getElementById('btnMock' + (mockUsed + 1));
+    if (currentMockBtn) {
+      currentMockBtn.onclick = function () {
+        overlay.style.display = 'none';
+        sessionStorage.setItem('examMode', 'practice');
+        sessionStorage.setItem('mockAttempt', mockUsed + 1);
+        startRandomPractice();
+      };
+    }
 
     // Wrong questions
     if (wrongQuestions.length > 0) {
@@ -112,8 +153,9 @@
     }
 
     // Formal exam
-    if (student.paid || student.allowExam) {
-      document.getElementById('btnModeFormal').onclick = function () {
+    var formalBtn = document.getElementById('btnModeFormal');
+    if (formalBtn) {
+      formalBtn.onclick = function () {
         overlay.style.display = 'none';
         sessionStorage.setItem('examMode', 'exam');
         startFormalExam();
@@ -222,11 +264,13 @@
   }
 
   (async function () {
-    // Display version
+    // Display version + update status
     if (window.api && window.api.getVersion) {
       var ver = await window.api.getVersion();
       var versionTag = document.getElementById('versionTag');
-      if (versionTag) versionTag.textContent = 'v' + ver;
+      if (versionTag) {
+        versionTag.innerHTML = 'v' + ver + ' <span id="updateStatusTag" style="color:#10B981;"></span>';
+      }
     }
 
     var online = await checkNetwork();
@@ -244,6 +288,16 @@
     var updateOverlay = null;
 
     window.api.onUpdateStatus(function (data) {
+      var statusTag = document.getElementById('updateStatusTag');
+
+      if (data.status === 'checking') {
+        if (statusTag) statusTag.textContent = '（檢查更新中...）';
+      }
+
+      if (data.status === 'up-to-date') {
+        if (statusTag) statusTag.textContent = '（已是最新版 ✓）';
+      }
+
       if (data.status === 'downloading' || data.status === 'ready') {
         // Show update overlay
         if (!updateOverlay) {
@@ -274,6 +328,7 @@
           if (titleEl) titleEl.textContent = '更新即將完成';
           if (barEl) barEl.style.width = '100%';
           if (msgEl) msgEl.textContent = data.message;
+          if (statusTag) statusTag.textContent = '（更新完成，重啟生效）';
         }
       }
     });
