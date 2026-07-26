@@ -184,8 +184,10 @@
       if (student.paid || student.allowExam) {
         var examActive = false;
         try {
-          var statusResult = await window.api.remote.examStatus();
-          if (statusResult.success && statusResult.data && statusResult.data.active) examActive = true;
+          if (window.api && window.api.remote && window.api.remote.examStatus) {
+            var statusResult = await window.api.remote.examStatus();
+            if (statusResult.success && statusResult.data && statusResult.data.active) examActive = true;
+          }
         } catch(e) {}
 
         if (examActive) {
