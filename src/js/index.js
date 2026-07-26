@@ -74,13 +74,12 @@
   });
 
   // ── Mode Selection (after login) ──
+  var activeBank = 'comptia-secai';
 
   async function showModeChoice(student) {
-    var wrongQuestions = await getWrongQuestions(student.id);
     var overlay = document.getElementById('modeChoiceOverlay');
-    var mockUsed = student.mock_attempts_used || 0;
-    var maxMock = 3;
-
+    document.getElementById('modeStudentName').textContent = student.name + '，您好！';
+    
     // Display session info if assigned
     var sessionEl = document.getElementById('modeSessionInfo');
     if (student.session) {
@@ -96,79 +95,126 @@
       if (sessionEl) sessionEl.style.display = 'none';
     }
 
-    // Build buttons — 3 separate mock exam buttons
-    var btnsHtml = '';
+    await renderBankModes(student, activeBank);
+    overlay.style.display = 'flex';
+  }
 
-    for (var i = 1; i <= maxMock; i++) {
-      var completed = i <= mockUsed;
-      var isCurrent = i === mockUsed + 1;
-      var isLocked = i > mockUsed + 1;
+  async function renderBankModes(student, bankKey) {
+    activeBank = bankKey;
+    var wrongQuestions = await getWrongQuestions(student.id, bankKey);
 
-      if (completed) {
-        btnsHtml += '<button class="btn" style="padding:14px;font-size:0.95rem;width:100%;background:#E2E8F0;color:#64748B;cursor:default;" disabled>'
-          + '✅ 第 ' + i + ' 次模擬考（已完成）</button>';
-      } else if (isCurrent) {
-        btnsHtml += '<button class="btn btn-primary" id="btnMock' + i + '" style="padding:14px;font-size:1rem;width:100%;">'
-          + '📝 第 ' + i + ' 次模擬考</button>';
+    var html = '';
+    
+    // Bank selector tabs
+    html += '<div style="display:flex;gap:8px;margin-bottom:16px;background:var(--bg-secondary,#F1F5F9);padding:4px;border-radius:10px;">';
+    html += '<button id="tabSecAI" class="btn" style="flex:1;padding:10px 8px;font-size:0.88rem;border-radius:8px;transition:all 0.2s;'
+      + (bankKey === 'comptia-secai' ? 'background:var(--primary);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(91,62,150,0.3);' : 'background:transparent;color:var(--text-secondary);border:none;') + '">'
+      + '🛡️ CompTIA SecAI+ (125題)</button>';
+    html += '<button id="tabGovAI" class="btn" style="flex:1;padding:10px 8px;font-size:0.88rem;border-radius:8px;transition:all 0.2s;'
+      + (bankKey === 'gov-ai' ? 'background:var(--primary);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(91,62,150,0.3);' : 'background:transparent;color:var(--text-secondary);border:none;') + '">'
+      + '🏛️ 公務AI認證 (50題)</button>';
+    html += '</div>';
+
+    if (bankKey === 'comptia-secai') {
+      html += '<div style="text-align:left;font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;background:#F8FAFC;padding:12px;border-radius:8px;border-left:4px solid #5B3E96;line-height:1.6;">'
+        + '🛡️ <strong>CompTIA SecAI+ (CY0-001) 認證題庫</strong><br>'
+        + '收錄 125 題精選試題（完全排除圖形題），附帶標準答案與詳細分析考點。'
+        + '</div>';
+      
+      html += '<button class="btn btn-primary" id="btnSecAIAll" style="padding:14px;font-size:0.98rem;width:100%;margin-bottom:10px;">'
+        + '📖 全題庫逐題刷題（1 ~ 125 題順序練習與詳解）</button>';
+      
+      html += '<button class="btn btn-secondary" id="btnSecAIRandom" style="padding:14px;font-size:0.98rem;width:100%;margin-bottom:10px;background:#3B82F6;color:#fff;">'
+        + '🎲 隨機模擬測驗（隨機抽取 40 題）</button>';
+      
+      if (wrongQuestions.length > 0) {
+        html += '<button class="btn btn-outline" id="btnSecAIWrong" style="padding:14px;font-size:0.98rem;width:100%;margin-bottom:10px;border:2px solid #EF4444;color:#EF4444;background:rgba(239,68,68,0.06);font-weight:700;">'
+          + '❌ 錯題專區（累積 <strong>' + wrongQuestions.length + '</strong> 題，重複練習直到對為止）</button>';
       } else {
-        btnsHtml += '<button class="btn" style="padding:14px;font-size:0.95rem;width:100%;background:#F1F5F9;color:#94A3B8;cursor:default;" disabled>'
-          + '🔒 第 ' + i + ' 次模擬考（需先完成前一次）</button>';
+        html += '<button class="btn" style="padding:14px;font-size:0.95rem;width:100%;background:#F1F5F9;color:#94A3B8;cursor:default;margin-bottom:10px;" disabled>'
+          + '✨ 尚無錯題紀錄（刷題答錯將自動存入錯題本）</button>';
       }
-    }
+    } else {
+      // Gov AI
+      html += '<div style="text-align:left;font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;background:#F8FAFC;padding:12px;border-radius:8px;border-left:4px solid #10B981;line-height:1.6;">'
+        + '🏛️ <strong>公務AI共通核心能力認證題庫</strong><br>'
+        + '含 50 題通識級模擬試題與正式考場認證功能。'
+        + '</div>';
 
-    // Wrong questions review
-    if (wrongQuestions.length > 0) {
-      btnsHtml += '<button class="btn btn-outline" id="btnModeWrong" style="padding:14px;font-size:1rem;width:100%;">❌ 錯題練習（<span id="wrongCountBadge">' + wrongQuestions.length + '</span> 題）</button>';
-    }
+      html += '<button class="btn btn-primary" id="btnGovAll" style="padding:14px;font-size:0.98rem;width:100%;margin-bottom:10px;">'
+        + '📖 模擬練習（50 題題庫練習）</button>';
 
-    // Formal exam — check if exam room is activated
-    if (student.paid || student.allowExam) {
-      var examActive = false;
-      try {
-        var statusResult = await window.api.remote.examStatus();
-        if (statusResult.success && statusResult.data && statusResult.data.active) {
-          examActive = true;
+      if (wrongQuestions.length > 0) {
+        html += '<button class="btn btn-outline" id="btnGovWrong" style="padding:14px;font-size:0.98rem;width:100%;margin-bottom:10px;border:2px solid #EF4444;color:#EF4444;background:rgba(239,68,68,0.06);font-weight:700;">'
+          + '❌ 錯題練習（累積 <strong>' + wrongQuestions.length + '</strong> 題）</button>';
+      }
+
+      // Formal exam
+      if (student.paid || student.allowExam) {
+        var examActive = false;
+        try {
+          var statusResult = await window.api.remote.examStatus();
+          if (statusResult.success && statusResult.data && statusResult.data.active) examActive = true;
+        } catch(e) {}
+
+        if (examActive) {
+          html += '<div style="border-top:2px solid #E2E8F0;margin-top:8px;padding-top:12px;">'
+            + '<button class="btn btn-success" id="btnModeFormal" style="padding:14px;font-size:1.05rem;width:100%;">🏆 進入考場（正式考試）</button>'
+            + '</div>';
+        } else {
+          html += '<div style="border-top:1px solid #E2E8F0;margin-top:8px;padding-top:10px;">'
+            + '<div style="text-align:center;color:#94A3B8;font-size:0.85rem;padding:6px;">'
+            + '🔒 正式考試尚未開放，請等待管理者啟動考場</div></div>';
         }
-      } catch(e) { /* no exam active */ }
-
-      if (examActive) {
-        btnsHtml += '<div style="border-top:2px solid #E2E8F0;margin-top:8px;padding-top:12px;">'
-          + '<button class="btn btn-success" id="btnModeFormal" style="padding:14px;font-size:1.05rem;width:100%;">🏆 進入考場（正式考試）</button>'
-          + '</div>';
-      } else {
-        btnsHtml += '<div style="border-top:2px solid #E2E8F0;margin-top:8px;padding-top:12px;">'
-          + '<div style="text-align:center;color:#94A3B8;font-size:0.85rem;padding:10px;">'
-          + '🔒 正式考試尚未開放，請等待管理者啟動考場'
-          + '</div></div>';
       }
     }
 
-    // Exit button
-    btnsHtml += '<div style="margin-top:12px;">'
-      + '<button class="btn btn-secondary" id="btnModeExit" style="padding:12px;font-size:0.95rem;width:100%;">🚪 離開系統</button>'
+    html += '<div style="margin-top:10px;border-top:1px solid #E2E8F0;padding-top:10px;">'
+      + '<button class="btn btn-secondary" id="btnModeExit" style="padding:11px;font-size:0.95rem;width:100%;">🚪 離開系統</button>'
       + '</div>';
 
-    document.getElementById('modeChoiceBtns').innerHTML = btnsHtml;
-    document.getElementById('modeStudentName').textContent = student.name + '，您好！';
-    overlay.style.display = 'flex';
+    document.getElementById('modeChoiceBtns').innerHTML = html;
 
-    // Bind mock exam button (only the current one)
-    var currentMockBtn = document.getElementById('btnMock' + (mockUsed + 1));
-    if (currentMockBtn) {
-      currentMockBtn.onclick = function () {
-        overlay.style.display = 'none';
+    // Bind tab clicks
+    document.getElementById('tabSecAI').onclick = function () { renderBankModes(student, 'comptia-secai'); };
+    document.getElementById('tabGovAI').onclick = function () { renderBankModes(student, 'gov-ai'); };
+
+    // Bind SecAI action buttons
+    if (document.getElementById('btnSecAIAll')) {
+      document.getElementById('btnSecAIAll').onclick = function () {
+        document.getElementById('modeChoiceOverlay').style.display = 'none';
         sessionStorage.setItem('examMode', 'practice');
-        sessionStorage.setItem('mockAttempt', mockUsed + 1);
-        startRandomPractice();
+        startPractice(student, 'comptia-secai', 'all');
+      };
+    }
+    if (document.getElementById('btnSecAIRandom')) {
+      document.getElementById('btnSecAIRandom').onclick = function () {
+        document.getElementById('modeChoiceOverlay').style.display = 'none';
+        sessionStorage.setItem('examMode', 'practice');
+        startPractice(student, 'comptia-secai', 'random');
+      };
+    }
+    if (document.getElementById('btnSecAIWrong') && wrongQuestions.length > 0) {
+      document.getElementById('btnSecAIWrong').onclick = function () {
+        document.getElementById('modeChoiceOverlay').style.display = 'none';
+        sessionStorage.setItem('examMode', 'practice');
+        startWrongPractice(student, wrongQuestions, 'comptia-secai');
       };
     }
 
-    // Wrong questions
-    if (wrongQuestions.length > 0) {
-      document.getElementById('btnModeWrong').onclick = function () {
-        overlay.style.display = 'none';
+    // Bind GovAI action buttons
+    if (document.getElementById('btnGovAll')) {
+      document.getElementById('btnGovAll').onclick = function () {
+        document.getElementById('modeChoiceOverlay').style.display = 'none';
         sessionStorage.setItem('examMode', 'practice');
-        startWrongPractice(student, wrongQuestions);
+        startPractice(student, 'gov-ai', 'all');
+      };
+    }
+    if (document.getElementById('btnGovWrong') && wrongQuestions.length > 0) {
+      document.getElementById('btnGovWrong').onclick = function () {
+        document.getElementById('modeChoiceOverlay').style.display = 'none';
+        sessionStorage.setItem('examMode', 'practice');
+        startWrongPractice(student, wrongQuestions, 'gov-ai');
       };
     }
 
@@ -176,7 +222,7 @@
     var formalBtn = document.getElementById('btnModeFormal');
     if (formalBtn) {
       formalBtn.onclick = function () {
-        overlay.style.display = 'none';
+        document.getElementById('modeChoiceOverlay').style.display = 'none';
         sessionStorage.setItem('examMode', 'exam');
         startFormalExam();
       };
@@ -184,7 +230,7 @@
 
     // Exit
     document.getElementById('btnModeExit').onclick = function () {
-      if (window.api) window.api.closeApp();
+      if (window.api && window.api.closeApp) window.api.closeApp();
     };
   }
 
@@ -204,10 +250,40 @@
 
   // ── Practice Mode Selection ──
 
-  async function startRandomPractice() {
+  async function startPractice(student, bankType, mode) {
     setLoading(true);
-    if (loginStatus) loginStatus.textContent = '正在下載模擬試題...';
-    var practiceResult = await window.api.remote.downloadPractice();
+    if (loginStatus) loginStatus.textContent = '正在載入試題...';
+
+    var practiceResult;
+    if (window.api && window.api.remote && window.api.remote.downloadPractice) {
+      practiceResult = await window.api.remote.downloadPractice({ bankType: bankType, mode: mode });
+    } else {
+      // Browser fallback - fetch JSON directly
+      try {
+        var jsonFile = (bankType === 'comptia-secai') ? 'data/comptia-secai-bank.json' : 'data/questions.json';
+        var resp = await fetch(jsonFile);
+        var rawData = await resp.json();
+        var qs = rawData.questions || [];
+        if (mode === 'random') {
+          qs = [...qs].sort(function() { return Math.random() - 0.5; }).slice(0, 40);
+        }
+        qs.forEach(function(q, idx) { q.id = idx + 1; });
+        practiceResult = {
+          success: true,
+          data: {
+            exam: rawData.exam || {
+              title: bankType === 'comptia-secai' ? 'CompTIA SecAI+ Certification Exam' : '公務AI共通核心能力認證',
+              passingScore: bankType === 'comptia-secai' ? 750 : 60,
+              bankType: bankType
+            },
+            questions: qs,
+            mode: 'practice'
+          }
+        };
+      } catch (e) {
+        practiceResult = { success: false, error: '載入題庫失敗: ' + e.message };
+      }
+    }
 
     if (!practiceResult.success) {
       showError('下載題目失敗：' + practiceResult.error);
@@ -218,20 +294,23 @@
     window.location.href = 'practice.html';
   }
 
-  function startWrongPractice(student, wrongQuestions) {
-    // Build exam data from wrong questions
+  function startWrongPractice(student, wrongQuestions, bankKey) {
+    var isSecAI = (bankKey === 'comptia-secai');
     var examData = {
       exam: {
-        title: '錯題練習',
-        subject: '複習模式',
-        level: '',
+        title: isSecAI ? 'CompTIA SecAI+ 錯題專區' : '公務AI 錯題練習',
+        subject: '錯題重練模式（答對自動克服並移出錯題庫，重複練習直到對為止）',
+        level: isSecAI ? 'Professional' : '通識',
         totalTime: 0,
-        passingScore: 60,
+        passingScore: isSecAI ? 750 : 60,
         pointsPerQuestion: wrongQuestions.length > 0 ? Math.floor(100 / wrongQuestions.length) : 2,
+        bankType: bankKey,
+        isWrongMode: true
       },
       questions: wrongQuestions.map(function (q, i) {
         return {
           id: i + 1,
+          originalNo: q.originalNo || ('NO.' + (i + 1)),
           type: q.type,
           text: q.text,
           options: q.options,
@@ -246,11 +325,19 @@
     window.location.href = 'practice.html';
   }
 
-  async function getWrongQuestions(studentId) {
+  async function getWrongQuestions(studentId, bankKey) {
+    bankKey = bankKey || 'comptia-secai';
+    var wrongId = studentId + '_' + bankKey;
     try {
-      var result = await window.api.wrong.load(studentId);
-      if (!result.success) return [];
-      return Object.values(result.data);
+      if (window.api && window.api.wrong) {
+        var result = await window.api.wrong.load(wrongId);
+        if (!result.success) return [];
+        return Object.values(result.data);
+      } else {
+        var local = localStorage.getItem('wrong_questions_' + wrongId);
+        if (!local) return [];
+        return Object.values(JSON.parse(local));
+      }
     } catch (e) {
       return [];
     }

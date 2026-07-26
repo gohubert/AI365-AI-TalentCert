@@ -650,9 +650,17 @@ ipcMain.handle('api:login', async (event, studentPassword) => {
   }
 });
 
-ipcMain.handle('api:download-practice', async () => {
+ipcMain.handle('api:download-practice', async (event, params) => {
   try {
-    return await apiClient.downloadPracticeExam();
+    let bankType = 'comptia-secai';
+    let mode = 'all';
+    if (typeof params === 'string') {
+      bankType = params;
+    } else if (params && typeof params === 'object') {
+      if (params.bankType) bankType = params.bankType;
+      if (params.mode) mode = params.mode;
+    }
+    return await apiClient.downloadPracticeExam(bankType, mode);
   } catch (err) {
     return { success: false, error: err.message };
   }

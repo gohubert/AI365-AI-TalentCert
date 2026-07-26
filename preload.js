@@ -80,7 +80,7 @@ contextBridge.exposeInMainWorld('api', {
   remote: {
     examStatus: () => ipcRenderer.invoke('api:exam-status'),
     login: (password) => ipcRenderer.invoke('api:login', password),
-    downloadPractice: () => ipcRenderer.invoke('api:download-practice'),
+    downloadPractice: (params) => ipcRenderer.invoke('api:download-practice', params),
     downloadFormal: () => ipcRenderer.invoke('api:download-formal'),
     uploadResult: (result) => ipcRenderer.invoke('api:upload-result', result),
   },

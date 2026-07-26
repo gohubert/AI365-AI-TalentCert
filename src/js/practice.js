@@ -46,6 +46,11 @@
   document.getElementById('practiceInfo').textContent =
     (examInfo.subject || examInfo.title) + ' — ' + questions.length + ' 題';
 
+  if (examInfo.isWrongMode) {
+    var banner = document.getElementById('wrongModeBanner');
+    if (banner) banner.style.display = 'block';
+  }
+
   // Quit button — save partial results before quitting
   document.getElementById('btnQuit').addEventListener('click', async function () {
     var answeredCount = confirmed.filter(function (c) { return c; }).length;
@@ -81,7 +86,8 @@
     var isConfirmed = confirmed[currentIndex];
     var myAnswers = answers[q.id] || [];
 
-    questionNum.textContent = '第 ' + (currentIndex + 1) + ' 題'
+    var originalLabel = q.originalNo ? (' [' + q.originalNo + ']') : '';
+    questionNum.textContent = '第 ' + (currentIndex + 1) + ' 題' + originalLabel
       + (isMultiple ? '（複選題）' : '（單選題）');
 
     var qText = q.text;
@@ -131,11 +137,21 @@
 
       answerSection.className = 'answer-section show ' + (isCorrect ? 'correct-answer' : 'wrong-answer');
       answerResult.className = 'answer-result ' + (isCorrect ? 'correct' : 'wrong');
-      answerResult.textContent = isCorrect ? '✔ 回答正確！' : '✘ 回答錯誤';
+      
+      if (examInfo.isWrongMode) {
+        answerResult.textContent = isCorrect 
+          ? '🎉 回答正確！此題已成功克服（已從錯題庫中移出）' 
+          : '✘ 回答錯誤，此題保留在錯題本中供重複練習，直到全對為止！';
+      } else {
+        answerResult.textContent = isCorrect 
+          ? '✔ 回答正確！' 
+          : '✘ 回答錯誤（已自動記錄至錯題本）';
+      }
 
-      var expHtml = '<strong>正確答案：' + correctStr + '</strong>';
+      var expHtml = '<div style="margin-bottom:8px;"><strong>正確答案：' + correctStr + '</strong></div>';
       if (q.explanation) {
-        expHtml += '<br><br>' + q.explanation;
+        expHtml += '<div style="background:rgba(255,255,255,0.7);padding:10px 14px;border-radius:8px;line-height:1.7;white-space:pre-line;">' 
+          + '💡 <strong>題目觀念解析：</strong>\n' + q.explanation + '</div>';
       }
       answerExplanation.innerHTML = expHtml;
     } else {
@@ -180,9 +196,14 @@
     return correct === mine;
   }
 
-  // Confirm answer — auto-save progress
-  btnConfirm.addEventListener('click', function () {
+  // Confirm answer — auto-save progress & update wrong questions instantly
+  btnConfirm.addEventListener('click', async function () {
     confirmed[currentIndex] = true;
+    var q = questions[currentIndex];
+    var myAnswers = answers[q.id] || [];
+    var isCorrect = checkCorrect(q, myAnswers);
+    
+    await updateWrongQuestionsForCurrent(q, myAnswers, isCorrect);
     autoSaveProgress();
     renderQuestion();
   });
@@ -225,7 +246,7 @@
       studentName: student.name,
       studentPassword: student.password || '',
       examTitle: examInfo.title + ' — ' + (examInfo.subject || ''),
-      examLevel: examInfo.level || '通識',
+      examLevel: examInfo.level || 'Professional',
       mode: 'practice',
       totalQuestions: questions.length,
       correctCount: correctCount,
@@ -253,7 +274,7 @@
   btnFinish.addEventListener('click', async function () {
     var result = buildResult();
 
-    // ── Update wrong questions in localStorage ──
+    // ── Update wrong questions in storage ──
     await updateWrongQuestions(result);
 
     // Store result for result page
@@ -261,9 +282,11 @@
     // Clear progress (completed)
     sessionStorage.removeItem('practiceProgress');
 
-    // Upload to cloud
+    // Upload to cloud if available
     try {
-      await window.api.remote.uploadResult(result);
+      if (window.api && window.api.remote) {
+        await window.api.remote.uploadResult(result);
+      }
     } catch (e) {
       console.error('Upload failed:', e);
     }
@@ -273,44 +296,95 @@
   });
 
   /**
-   * 更新錯題庫（透過主進程檔案持久化）
-   * - 這次答對的 → 從錯題庫移除
-   * - 有作答但答錯的 → 加入錯題庫（含完整題目資料）
+   * 即時單題更新錯題庫
+   */
+  async function updateWrongQuestionsForCurrent(q, myAnswers, isCorrect) {
+    var bankKey = examInfo.bankType || 'comptia-secai';
+    var wrongId = student.id + '_' + bankKey;
+    var existing = {};
+
+    try {
+      if (window.api && window.api.wrong) {
+        var loaded = await window.api.wrong.load(wrongId);
+        if (loaded.success) existing = loaded.data || {};
+      } else {
+        var local = localStorage.getItem('wrong_questions_' + wrongId);
+        if (local) existing = JSON.parse(local);
+      }
+    } catch (e) { existing = {}; }
+
+    var textKey = (q.text || '').substring(0, 50);
+
+    if (isCorrect) {
+      delete existing[textKey];
+    } else {
+      existing[textKey] = {
+        text: q.text,
+        type: q.type,
+        options: q.options,
+        answer: q.answer,
+        explanation: q.explanation || '',
+        originalNo: q.originalNo || '',
+        lastWrongAt: new Date().toISOString(),
+      };
+    }
+
+    try {
+      if (window.api && window.api.wrong) {
+        await window.api.wrong.save(wrongId, existing);
+      } else {
+        localStorage.setItem('wrong_questions_' + wrongId, JSON.stringify(existing));
+      }
+    } catch (e) {
+      console.error('Failed to save wrong question:', e);
+    }
+  }
+
+  /**
+   * 批次更新錯題庫
    */
   async function updateWrongQuestions(result) {
+    var bankKey = examInfo.bankType || 'comptia-secai';
+    var wrongId = student.id + '_' + bankKey;
     var existing = {};
     try {
-      var loaded = await window.api.wrong.load(student.id);
-      if (loaded.success) existing = loaded.data;
+      if (window.api && window.api.wrong) {
+        var loaded = await window.api.wrong.load(wrongId);
+        if (loaded.success) existing = loaded.data || {};
+      } else {
+        var local = localStorage.getItem('wrong_questions_' + wrongId);
+        if (local) existing = JSON.parse(local);
+      }
     } catch (e) { existing = {}; }
 
     result.answers.forEach(function (a) {
-      // 用題目文字前 50 字做 key（避免 ID 重編問題）
       var q = questions.find(function (qq) { return qq.id === a.questionId; });
       if (!q) return;
       var textKey = (q.text || '').substring(0, 50);
 
-      // 沒有作答的題目不處理
       if (!a.studentAnswer || a.studentAnswer.length === 0) return;
 
       if (a.isCorrect) {
-        // 答對 → 移除
         delete existing[textKey];
       } else {
-        // 有作答但答錯 → 存入完整題目
         existing[textKey] = {
           text: q.text,
           type: q.type,
           options: q.options,
           answer: q.answer,
           explanation: q.explanation || '',
+          originalNo: q.originalNo || '',
           lastWrongAt: new Date().toISOString(),
         };
       }
     });
 
     try {
-      await window.api.wrong.save(student.id, existing);
+      if (window.api && window.api.wrong) {
+        await window.api.wrong.save(wrongId, existing);
+      } else {
+        localStorage.setItem('wrong_questions_' + wrongId, JSON.stringify(existing));
+      }
     } catch (e) {
       console.error('Failed to save wrong questions:', e);
     }

@@ -62,6 +62,63 @@
   reviewContainer.innerHTML = html;
 
   // Buttons
+  var btnActions = document.querySelector('.result-actions');
+  if (result.wrongCount > 0 && btnActions) {
+    var wrongBtn = document.createElement('button');
+    wrongBtn.className = 'btn btn-outline';
+    wrongBtn.style.cssText = 'border:2px solid #EF4444;color:#EF4444;background:rgba(239,68,68,0.06);font-weight:700;';
+    wrongBtn.innerHTML = '❌ 立即重練錯題（' + result.wrongCount + ' 題）';
+    wrongBtn.onclick = async function () {
+      var student = JSON.parse(sessionStorage.getItem('currentStudent') || '{}');
+      var bankKey = result.bankType || 'comptia-secai';
+      var wrongId = (student.id || result.studentId) + '_' + bankKey;
+      var wrongQuestions = [];
+      try {
+        if (window.api && window.api.wrong) {
+          var res = await window.api.wrong.load(wrongId);
+          if (res.success) wrongQuestions = Object.values(res.data || {});
+        } else {
+          var local = localStorage.getItem('wrong_questions_' + wrongId);
+          if (local) wrongQuestions = Object.values(JSON.parse(local));
+        }
+      } catch(e) {}
+
+      if (wrongQuestions.length === 0) {
+        alert('太棒了！目前無錯題需要練習。');
+        return;
+      }
+
+      var examData = {
+        exam: {
+          title: 'CompTIA SecAI+ 錯題專區',
+          subject: '錯題重練模式（答對自動克服並移出錯題庫，重複練習直到對為止）',
+          level: 'Professional',
+          totalTime: 0,
+          passingScore: 750,
+          pointsPerQuestion: Math.floor(100 / wrongQuestions.length),
+          bankType: bankKey,
+          isWrongMode: true
+        },
+        questions: wrongQuestions.map(function (q, i) {
+          return {
+            id: i + 1,
+            originalNo: q.originalNo || ('NO.' + (i + 1)),
+            type: q.type,
+            text: q.text,
+            options: q.options,
+            answer: q.answer,
+            explanation: q.explanation || '',
+          };
+        }),
+        mode: 'practice',
+      };
+      sessionStorage.setItem('examData', JSON.stringify(examData));
+      sessionStorage.setItem('examMode', 'practice');
+      window.location.href = 'practice.html';
+    };
+    btnActions.insertBefore(wrongBtn, btnActions.firstChild);
+  }
+
   document.getElementById('btnRetry').addEventListener('click', function () {
     sessionStorage.removeItem('practiceResult');
     sessionStorage.removeItem('examData');
