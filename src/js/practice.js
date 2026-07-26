@@ -97,8 +97,16 @@
     questionText.textContent = qText;
 
     // Options
+    var opts = [];
+    if (Array.isArray(q.options)) {
+      opts = q.options;
+    } else if (q.options && typeof q.options === 'object') {
+      var keys = Object.keys(q.options).sort();
+      opts = keys.map(function (k) { return q.options[k]; });
+    }
+
     var html = '';
-    q.options.forEach(function (opt, i) {
+    opts.forEach(function (opt, i) {
       var label = LABELS[i];
       var isSelected = myAnswers.indexOf(label) > -1;
       var classes = '';

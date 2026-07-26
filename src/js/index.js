@@ -296,11 +296,32 @@
         var jsonFile = (bankType === 'comptia-secai') ? 'data/comptia-secai-bank.json' : 'data/questions.json';
         var resp = await fetch(jsonFile);
         var rawData = await resp.json();
-        var qs = rawData.questions || [];
+        var rawQs = rawData.questions || [];
+
+        function normQ(q, idx) {
+          var opts = [];
+          if (Array.isArray(q.options)) {
+            opts = q.options;
+          } else if (q.options && typeof q.options === 'object') {
+            var keys = Object.keys(q.options).sort();
+            opts = keys.map(function(k) { return q.options[k]; });
+          }
+          return {
+            id: idx + 1,
+            originalNo: q.originalNo || ('NO.' + (q.id || (idx + 1))),
+            type: q.type === '複選' || q.type === 'multiple' ? 'multiple' : 'single',
+            text: q.question || q.text || '',
+            options: opts,
+            answer: q.answer,
+            explanation: q.explanation || ''
+          };
+        }
+
+        var qs = rawQs.map(normQ);
         if (mode === 'random') {
           qs = [...qs].sort(function() { return Math.random() - 0.5; }).slice(0, 40);
+          qs.forEach(function(q, idx) { q.id = idx + 1; });
         }
-        qs.forEach(function(q, idx) { q.id = idx + 1; });
         practiceResult = {
           success: true,
           data: {
