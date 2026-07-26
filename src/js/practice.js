@@ -90,7 +90,7 @@
     questionNum.textContent = '第 ' + (currentIndex + 1) + ' 題' + originalLabel
       + (isMultiple ? '（複選題）' : '（單選題）');
 
-    var qText = q.text;
+    var qText = q.text || q.question || '';
     if (isMultiple && Array.isArray(q.answer)) {
       qText += '\n（請選擇 ' + q.answer.length + ' 個最適合的答案）';
     }
@@ -321,13 +321,14 @@
       }
     } catch (e) { existing = {}; }
 
-    var textKey = (q.text || '').substring(0, 50);
+    var qTxt = q.text || q.question || '';
+    var textKey = qTxt.substring(0, 50);
 
     if (isCorrect) {
       delete existing[textKey];
     } else {
       existing[textKey] = {
-        text: q.text,
+        text: qTxt,
         type: q.type,
         options: q.options,
         answer: q.answer,
@@ -368,7 +369,8 @@
     result.answers.forEach(function (a) {
       var q = questions.find(function (qq) { return qq.id === a.questionId; });
       if (!q) return;
-      var textKey = (q.text || '').substring(0, 50);
+      var qTxt = q.text || q.question || '';
+      var textKey = qTxt.substring(0, 50);
 
       if (!a.studentAnswer || a.studentAnswer.length === 0) return;
 
@@ -376,7 +378,7 @@
         delete existing[textKey];
       } else {
         existing[textKey] = {
-          text: q.text,
+          text: qTxt,
           type: q.type,
           options: q.options,
           answer: q.answer,
@@ -407,7 +409,8 @@
 
   document.getElementById('btnReport').addEventListener('click', function () {
     var q = questions[currentIndex];
-    reportQuestionRef.textContent = '第 ' + (currentIndex + 1) + ' 題：' + q.text.substring(0, 50) + '...';
+    var qTxt = q.text || q.question || '';
+    reportQuestionRef.textContent = '第 ' + (currentIndex + 1) + ' 題：' + qTxt.substring(0, 50) + '...';
     reportContent.value = '';
     reportOverlay.classList.add('show');
     reportContent.focus();
@@ -426,10 +429,11 @@
     }
 
     var q = questions[currentIndex];
+    var qTxt = q.text || q.question || '';
     var report = {
       questionId: q.id,
       questionIndex: currentIndex + 1,
-      questionText: q.text,
+      questionText: qTxt,
       currentAnswer: Array.isArray(q.answer) ? q.answer.join(', ') : q.answer,
       reportContent: content,
       studentId: student.id,
