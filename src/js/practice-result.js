@@ -104,7 +104,7 @@
             id: i + 1,
             originalNo: q.originalNo || ('NO.' + (i + 1)),
             type: q.type,
-            text: q.text,
+            text: q.text || q.question || '',
             options: q.options,
             answer: q.answer,
             explanation: q.explanation || '',

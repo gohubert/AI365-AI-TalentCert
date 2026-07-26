@@ -348,8 +348,35 @@
     window.location.href = 'practice.html';
   }
 
-  function startWrongPractice(student, wrongQuestions, bankKey) {
+  async function startWrongPractice(student, wrongQuestions, bankKey) {
     var isSecAI = (bankKey === 'comptia-secai');
+    
+    // Repair text if missing from old cache
+    try {
+      var jsonFile = isSecAI ? 'data/comptia-secai-bank.json' : 'data/questions.json';
+      var resp = await fetch(jsonFile);
+      var rawData = await resp.json();
+      var fullBank = rawData.questions || [];
+      var fullMap = {};
+      fullBank.forEach(function(fq) {
+        var noKey = fq.originalNo || ('NO.' + fq.id);
+        fullMap[noKey] = fq;
+        if (fq.id) fullMap['id_' + fq.id] = fq;
+      });
+
+      wrongQuestions.forEach(function(wq) {
+        if (!wq.text && !wq.question) {
+          var matched = fullMap[wq.originalNo] || fullMap['id_' + wq.id];
+          if (matched) {
+            wq.text = matched.text || matched.question || '';
+            wq.question = wq.text;
+            wq.options = matched.options || wq.options;
+            wq.explanation = matched.explanation || wq.explanation;
+          }
+        }
+      });
+    } catch(e) {}
+
     var examData = {
       exam: {
         title: isSecAI ? 'CompTIA SecAI+ 錯題專區' : '公務AI 錯題練習',
@@ -366,7 +393,7 @@
           id: i + 1,
           originalNo: q.originalNo || ('NO.' + (i + 1)),
           type: q.type,
-          text: q.text,
+          text: q.text || q.question || '',
           options: q.options,
           answer: q.answer,
           explanation: q.explanation || '',
